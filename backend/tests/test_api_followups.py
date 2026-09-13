@@ -145,3 +145,53 @@ def test_the_due_list_and_case_follow_ups_serialise(client, auth, seeded):
     listed = client.get(f"/api/v1/cases/{seeded['case_id']}/follow-ups", headers=auth)
     assert listed.status_code == 200, listed.text
     assert any(r["source"] == "COUNSELLOR" for r in listed.json())
+
+
+def test_schedule_ai_follow_up_and_cancel_complete(client, auth, seeded):
+    """Counsellor can schedule an AI follow-up with reason, cancel it, or complete it."""
+    when = datetime.now(timezone.utc) + timedelta(days=2)
+    response = client.post(
+        f"/api/v1/cases/{seeded['case_id']}/schedule-call",
+        headers=auth,
+        json={
+            "scheduled_for": when.isoformat(),
+            "channel": "TEXT",
+            "follow_up_type": "AI",
+            "reason": "Post-intervention reassessment",
+            "note": "Automated text prompt",
+        },
+    )
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["source"] == "AI"
+    assert body["reason"] == "Post-intervention reassessment"
+    assert body["channel"] == "TEXT"
+    assert body["status"] == "SCHEDULED"
+    follow_up_id = body["id"]
+
+    # Cancel
+    cancel_res = client.post(
+        f"/api/v1/cases/{seeded['case_id']}/follow-ups/{follow_up_id}/cancel",
+        headers=auth,
+    )
+    assert cancel_res.status_code == 200
+    assert cancel_res.json()["status"] == "CANCELLED"
+
+    # Complete another
+    when2 = datetime.now(timezone.utc) + timedelta(days=3)
+    sched2 = client.post(
+        f"/api/v1/cases/{seeded['case_id']}/schedule-call",
+        headers=auth,
+        json={
+            "scheduled_for": when2.isoformat(),
+            "channel": "VOICE",
+            "follow_up_type": "COUNSELLOR",
+            "reason": "Counsellor requested",
+        },
+    ).json()
+    comp_res = client.post(
+        f"/api/v1/cases/{seeded['case_id']}/follow-ups/{sched2['id']}/complete",
+        headers=auth,
+    )
+    assert comp_res.status_code == 200
+    assert comp_res.json()["status"] == "COMPLETED"

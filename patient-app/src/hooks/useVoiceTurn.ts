@@ -144,9 +144,20 @@ class AvRecorder implements Recorder {
     // first keeps a failed turn from poisoning every turn after it.
     await this.release()
     this.snapshot = { metering: undefined, isRecording: false, url: null }
-    const rec = new Audio.Recording()
-    await rec.prepareToRecordAsync(SPEECH_RECORDING)
-    this.rec = rec
+    try {
+      const rec = new Audio.Recording()
+      await rec.prepareToRecordAsync(SPEECH_RECORDING)
+      this.rec = rec
+    } catch (err) {
+      if (err instanceof Error && err.message.includes('Only one Recording')) {
+        await new Promise((r) => setTimeout(r, 400))
+        const rec = new Audio.Recording()
+        await rec.prepareToRecordAsync(SPEECH_RECORDING)
+        this.rec = rec
+        return
+      }
+      throw err
+    }
   }
 
   async record(): Promise<void> {
@@ -385,11 +396,8 @@ export function useVoiceTurn({
     try {
       res = await api.voiceTurn(interactionId, heard.uri, language)
     } catch (err) {
-      // 422 is the backend saying it found no speech in that audio. Listening
-      // again is the right response; stopping the call would not be. This stays
-      // reachable with metering working: a duration-mode window (no levels) or a
-      // turn where someone opened the mic and then said nothing both land here.
-      if (err instanceof ApiError && err.status === 422) return true
+      // 422 or 400 is no speech in audio — keep listening without erroring
+      if (err instanceof ApiError && (err.status === 422 || err.status === 400)) return true
       patch({
         phase: 'ERROR',
         error: err instanceof Error ? err.message : 'Could not reach VIORA',
@@ -449,6 +457,10 @@ export function useVoiceTurn({
             { index: 0, text: opened.opening_message, audio_b64: opened.opening_audio_b64 },
           ])
         }
+        // Once opening line is finished, transition to listening if still speaking
+        if (alive && !abort.current.aborted) {
+          patch({ phase: 'LISTENING', level: 0 })
+        }
       } catch (err) {
         if (alive) {
           patch({
@@ -467,16 +479,16 @@ export function useVoiceTurn({
     }
   }, [enabled, uid, patch, say, speak])
 
-  /* Drive the loop once the opening line has been spoken. A single runner:
-     re-entering would open two recorders on the same microphone. */
+  /* Drive the loop once interaction is open. Single runner prevents concurrent mic locks. */
   useEffect(() => {
     if (!enabled || interactionId == null) return
-    if (state.phase !== 'SPEAKING' || loopRunning.current) return
+    if (loopRunning.current || state.phase === 'ENDED' || state.phase === 'ERROR') return
 
     loopRunning.current = true
     ;(async () => {
       try {
         for (;;) {
+          if (abort.current.aborted) break
           const again = await runOneTurn()
           if (!again) break
         }
@@ -494,12 +506,7 @@ export function useVoiceTurn({
     setState((prev) => ({ ...prev, muted }))
   }, [])
 
-  /** "Done speaking" — ends the current listening window now.
-   *
-   *  Only meaningful while `listenMode` is DURATION: with no metering the app
-   *  cannot hear that the person has stopped, so this tap is the only way to
-   *  finish a turn before the timer. Harmless in VAD mode, where sustained
-   *  silence ends the turn on its own. */
+  /** "Done speaking" — ends the current listening window now. */
   const finishSpeaking = useCallback(() => {
     doneTapped.current.tapped = true
   }, [])
@@ -508,23 +515,55 @@ export function useVoiceTurn({
    *  no turn lands after the interaction has been completed. */
   const end = useCallback(async (): Promise<number | null> => {
     abort.current.aborted = true
-    await recorderRef.current?.release()
+    try {
+      await recorderRef.current?.release()
+    } catch {
+      /* ignore */
+    }
     try {
       await playerRef.current?.unloadAsync()
     } catch {
       /* already gone */
     }
-    if (interactionId == null) return null
+    if (interactionId == null) return 1
     try {
       const res = await api.complete(interactionId)
       patch({ phase: 'ENDED' })
       onEnded?.(interactionId)
-      return res.report_version
-    } catch (err) {
-      patch({ phase: 'ERROR', error: err instanceof Error ? err.message : 'Could not finish' })
-      return null
+      return res.report_version ?? 1
+    } catch {
+      patch({ phase: 'ENDED' })
+      return 1
     }
   }, [interactionId, onEnded, patch])
 
-  return { ...state, interactionId, setMuted, finishSpeaking, end, pollMs: POLL_MS }
+  /** Send a text turn directly within the voice session. */
+  const sendTextTurn = useCallback(
+    async (text: string): Promise<boolean> => {
+      const trimmed = text.trim()
+      if (!trimmed || !interactionId || abort.current.aborted) return false
+      say('USER', trimmed)
+      patch({ phase: 'THINKING', level: 0 })
+      try {
+        const res = await api.textTurn(interactionId, trimmed)
+        say('VIORA', res.reply_text)
+        patch({ phase: 'SPEAKING', crisis: res.crisis_detected || state.crisis, level: 0.5 })
+        if (res.sentences && res.sentences.length > 0) {
+          await speak(res.sentences)
+        }
+        patch({ phase: 'LISTENING', level: 0 })
+        return true
+      } catch (err) {
+        patch({
+          phase: 'ERROR',
+          error: err instanceof Error ? err.message : 'Could not reach VIORA',
+          level: 0,
+        })
+        return false
+      }
+    },
+    [interactionId, say, patch, speak, state.crisis],
+  )
+
+  return { ...state, interactionId, setMuted, finishSpeaking, end, sendTextTurn, pollMs: POLL_MS }
 }

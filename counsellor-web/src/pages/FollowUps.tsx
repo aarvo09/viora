@@ -3,7 +3,7 @@
  * Implements Stitch UI/UX for the Clinician Touchpoints and Scheduled Outreach queue.
  */
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../api/client'
 import type { DueFollowUp } from '../api/types'
@@ -22,14 +22,44 @@ export function FollowUps() {
   const [followUps, setFollowUps] = useState<DueFollowUp[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<'all' | 'due' | 'scheduled'>('all')
+  const [actionLoading, setActionLoading] = useState<number | null>(null)
 
-  useEffect(() => {
+  const loadFollowUps = useCallback(() => {
     api
       .dueFollowUps()
       .then(setFollowUps)
       .catch(() => {})
       .finally(() => setLoading(false))
   }, [])
+
+  useEffect(() => {
+    loadFollowUps()
+  }, [loadFollowUps])
+
+  async function handleCancel(caseId: number, followUpId: number) {
+    if (!window.confirm('Are you sure you want to cancel this scheduled follow-up?')) return
+    setActionLoading(followUpId)
+    try {
+      await api.cancelFollowUp(caseId, followUpId)
+      loadFollowUps()
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Could not cancel follow-up')
+    } finally {
+      setActionLoading(null)
+    }
+  }
+
+  async function handleComplete(caseId: number, followUpId: number) {
+    setActionLoading(followUpId)
+    try {
+      await api.completeFollowUp(caseId, followUpId)
+      loadFollowUps()
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Could not complete follow-up')
+    } finally {
+      setActionLoading(null)
+    }
+  }
 
   if (loading) return <Spinner label="Loading follow-up queue" />
 
@@ -171,11 +201,12 @@ export function FollowUps() {
             <thead>
               <tr className="bg-surface-container-low/60 border-b border-outline-variant/30 text-secondary font-label-sm text-label-sm uppercase">
                 <th className="py-space-md px-space-lg">Patient</th>
+                <th className="py-space-md px-space-md">Type</th>
                 <th className="py-space-md px-space-md">Scheduled For</th>
                 <th className="py-space-md px-space-md">Channel</th>
                 <th className="py-space-md px-space-md">Risk</th>
                 <th className="py-space-md px-space-md">Reason &amp; Clinical Context</th>
-                <th className="py-space-md px-space-lg text-right">Action</th>
+                <th className="py-space-md px-space-lg text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-outline-variant/20 font-body-sm text-body-sm">
@@ -191,6 +222,24 @@ export function FollowUps() {
                       </Link>
                       <span className="font-data-mono text-xs text-secondary">{f.uid}</span>
                     </div>
+                  </td>
+                  <td className="py-space-md px-space-md">
+                    {f.source === 'AI' ? (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-secondary-container/40 text-secondary border border-secondary/20 font-label-sm text-xs font-semibold">
+                        <span className="material-symbols-outlined text-[13px]">smart_toy</span>
+                        VIORA AI
+                      </span>
+                    ) : f.source === 'COUNSELLOR' ? (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-primary-container/40 text-primary border border-primary/20 font-label-sm text-xs font-semibold">
+                        <span className="material-symbols-outlined text-[13px]">support_agent</span>
+                        Counsellor
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-xs font-semibold">
+                        <span className="material-symbols-outlined text-[13px]">auto_schedule</span>
+                        Cadence
+                      </span>
+                    )}
                   </td>
                   <td className="py-space-md px-space-md">
                     <div className="flex items-center gap-1.5">
@@ -215,13 +264,37 @@ export function FollowUps() {
                     <span className="text-on-surface-variant truncate block">{f.reason}</span>
                   </td>
                   <td className="py-space-md px-space-lg text-right">
-                    <Link
-                      to={`/cases/${f.case_id}`}
-                      className="px-space-md py-1 rounded-lg bg-primary-container text-on-primary font-label-sm text-label-sm hover:bg-primary transition-colors inline-flex items-center gap-1 font-semibold"
-                    >
-                      <span>Review</span>
-                      <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
-                    </Link>
+                    <div className="flex items-center justify-end gap-1.5">
+                      {(f.status === 'SCHEDULED' || f.status === 'DUE') && (
+                        <>
+                          <button
+                            type="button"
+                            title="Mark Completed"
+                            disabled={actionLoading === f.follow_up_id}
+                            onClick={() => handleComplete(f.case_id, f.follow_up_id)}
+                            className="p-1.5 rounded-lg bg-surface-container hover:bg-emerald-50 text-emerald-600 transition-colors disabled:opacity-50"
+                          >
+                            <span className="material-symbols-outlined text-[18px]">check_circle</span>
+                          </button>
+                          <button
+                            type="button"
+                            title="Cancel Follow-up"
+                            disabled={actionLoading === f.follow_up_id}
+                            onClick={() => handleCancel(f.case_id, f.follow_up_id)}
+                            className="p-1.5 rounded-lg bg-surface-container hover:bg-error-container/30 text-error transition-colors disabled:opacity-50"
+                          >
+                            <span className="material-symbols-outlined text-[18px]">cancel</span>
+                          </button>
+                        </>
+                      )}
+                      <Link
+                        to={`/cases/${f.case_id}`}
+                        className="px-space-md py-1 rounded-lg bg-primary-container text-on-primary font-label-sm text-label-sm hover:bg-primary transition-colors inline-flex items-center gap-1 font-semibold"
+                      >
+                        <span>Review</span>
+                        <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
+                      </Link>
+                    </div>
                   </td>
                 </tr>
               ))}

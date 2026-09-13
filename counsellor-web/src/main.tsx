@@ -11,10 +11,10 @@ import { Conversations } from './pages/Conversations'
 import { FollowUps } from './pages/FollowUps'
 import { Login } from './pages/Login'
 import { Reports } from './pages/Reports'
+import { Settings } from './pages/Settings'
 import { Today } from './pages/Today'
 import './styles/tokens.css'
 
-/* A render error must never leave a blank page — show what broke instead. */
 class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
   state: { error: Error | null } = { error: null }
 
@@ -26,17 +26,18 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | 
     if (!this.state.error) return this.props.children
     return (
       <div style={{ padding: 32, fontFamily: 'monospace', maxWidth: 900 }}>
-        <h1 style={{ fontSize: 18, color: '#c0453c', marginBottom: 12 }}>
+        <h1 style={{ fontSize: 18, color: '#ba1a1a', marginBottom: 12 }}>
           VIORA dashboard failed to render
         </h1>
         <pre
           style={{
             whiteSpace: 'pre-wrap',
-            background: '#f9eae9',
-            border: '1px solid #c0453c',
+            background: '#ffdad6',
+            border: '1px solid #ba1a1a',
             borderRadius: 8,
             padding: 16,
             fontSize: 13,
+            color: '#93000a',
           }}
         >
           {this.state.error.message}
@@ -78,6 +79,7 @@ if (!rootEl) {
               <Route path="/follow-ups" element={<FollowUps />} />
               <Route path="/reports" element={<Reports />} />
               <Route path="/analytics" element={<Analytics />} />
+              <Route path="/settings" element={<Settings />} />
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

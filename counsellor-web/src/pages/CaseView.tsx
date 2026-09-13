@@ -5,7 +5,7 @@
  * 38% Right Column: Audio player & Transcript, Recommended Cadence, Human Review Decision Station (#decision-station), Telemetry Timeline.
  */
 
-import { Fragment, useCallback, useEffect, useState } from 'react'
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import {
   CartesianGrid,
@@ -26,6 +26,7 @@ import type {
   TelemetryPoint,
   Transcript,
 } from '../api/types'
+import { ScheduleModal } from '../components/ScheduleModal'
 import { TrajectoryQuadrant } from '../components/TrajectoryQuadrant'
 import {
   BaselineConfidenceTag,
@@ -111,6 +112,7 @@ export function CaseView() {
   const [detail, setDetail] = useState<CaseDetail | null>(null)
   const [telemetry, setTelemetry] = useState<TelemetryPoint[]>([])
   const [reports, setReports] = useState<Report[]>([])
+  const [selectedVersion, setSelectedVersion] = useState<number | null>(null)
   const [interactions, setInteractions] = useState<InteractionSummary[]>([])
   const [transcript, setTranscript] = useState<Transcript | null>(null)
   const [openReport, setOpenReport] = useState<number | null>(null)
@@ -122,7 +124,19 @@ export function CaseView() {
     'Spoke with triage team. Reaching out to patient regarding safe environment and adjusting evening check-in cadence.'
   )
   const [isPlayingAudio, setIsPlayingAudio] = useState(false)
+  const [activeSpeechSeq, setActiveSpeechSeq] = useState<number | null>(null)
+  const [audioPlaybackSec, setAudioPlaybackSec] = useState(0)
+  const [playbackSpeed, setPlaybackSpeed] = useState<number>(1.0)
+  const audioCacheRef = useRef<Map<string, string[]>>(new Map())
+  const currentAudioRef = useRef<HTMLAudioElement | null>(null)
+  const audioIntervalRef = useRef<number | null>(null)
+  const isPlayingRef = useRef(false)
+  isPlayingRef.current = isPlayingAudio
+
   const [activeGraphTab, setActiveGraphTab] = useState<'distress' | 'threat' | 'both'>('both')
+  const [isSchedulingOpen, setIsSchedulingOpen] = useState(false)
+  const [followUpLoading, setFollowUpLoading] = useState(false)
+  const [allFollowUps, setAllFollowUps] = useState<FollowUp[]>([])
 
   const load = useCallback(() => {
     Promise.all([
@@ -130,21 +144,52 @@ export function CaseView() {
       api.telemetry(caseId),
       api.reports(caseId),
       api.interactions(caseId),
+      api.followUps(caseId).catch(() => [] as FollowUp[]),
     ])
-      .then(([d, t, r, i]) => {
+      .then(([d, t, r, i, f]) => {
         setDetail(d)
         setTelemetry(t)
         setReports(r)
         setInteractions(i)
-        // Auto load latest transcript if available
-        if (i.length > 0) {
-          api.transcript(i[0].interaction_id).then(setTranscript).catch(() => {})
-        }
+        setAllFollowUps(f)
       })
       .catch((err) => setError(err instanceof Error ? err.message : 'Could not load case'))
   }, [caseId])
 
-  useEffect(load, [load])
+  useEffect(() => {
+    load()
+    window.addEventListener('focus', load)
+    const timer = setInterval(load, 6000)
+    return () => {
+      window.removeEventListener('focus', load)
+      clearInterval(timer)
+    }
+  }, [load])
+
+  async function handleCancelFollowUp(followUpId: number) {
+    if (!window.confirm('Cancel this scheduled follow-up?')) return
+    setFollowUpLoading(true)
+    try {
+      await api.cancelFollowUp(caseId, followUpId)
+      load()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not cancel follow-up')
+    } finally {
+      setFollowUpLoading(false)
+    }
+  }
+
+  async function handleCompleteFollowUp(followUpId: number) {
+    setFollowUpLoading(true)
+    try {
+      await api.completeFollowUp(caseId, followUpId)
+      load()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not complete follow-up')
+    } finally {
+      setFollowUpLoading(false)
+    }
+  }
 
   async function submitDecision() {
     if (!detail) return
@@ -168,12 +213,289 @@ export function CaseView() {
     }
   }
 
+  const isHistorical = selectedVersion != null && selectedVersion !== detail?.latest_report?.report_version
+  const report = isHistorical
+    ? (reports.find((r) => r.report_version === selectedVersion) ?? detail?.latest_report)
+    : detail?.latest_report
+
+  const currentInteractionId =
+    report?.interaction_id ??
+    (report?.report_version
+      ? interactions.find((i) => i.interaction_id === report?.interaction_id)?.interaction_id
+      : null) ??
+    interactions[0]?.interaction_id
+
+  // Dynamic transcript loading whenever version/report/case changes
+  useEffect(() => {
+    if (currentInteractionId) {
+      api.transcript(currentInteractionId).then(setTranscript).catch(() => setTranscript(null))
+    } else {
+      setTranscript(null)
+    }
+  }, [currentInteractionId])
+
+  // Total duration estimated by character length (~16 chars per second)
+  const totalDurationSec = Math.max(
+    12,
+    Math.round((transcript?.messages.reduce((acc, m) => acc + m.content.length, 0) ?? 80) / 16)
+  )
+
+  // Pre-fetch / synthesize neural audio for a message using Sarvam TTS API
+  const getAudioForMessage = useCallback(
+    async (content: string, role: string, language = 'hi'): Promise<string[]> => {
+      const cacheKey = `${role}:${language}:${content.trim()}`
+      if (audioCacheRef.current.has(cacheKey)) {
+        return audioCacheRef.current.get(cacheKey)!
+      }
+
+      try {
+        const res = await api.synthesizeText(content, language)
+        if (res?.sentences && res.sentences.length > 0) {
+          const dataUrls = res.sentences
+            .map((s) => s.audio_b64)
+            .filter((b64): b64 is string => Boolean(b64 && b64.length > 0))
+            .map((b64) => (b64.startsWith('data:') ? b64 : `data:audio/wav;base64,${b64}`))
+
+          if (dataUrls.length > 0) {
+            audioCacheRef.current.set(cacheKey, dataUrls)
+            return dataUrls
+          }
+        }
+      } catch (err) {
+        console.warn('TTS synthesis failed, falling back:', err)
+      }
+      return []
+    },
+    []
+  )
+
+  // Pre-fetch transcript audio in background when transcript loads for instant zero-latency replay
+  useEffect(() => {
+    if (!transcript || transcript.messages.length === 0) return
+    const lang = transcript.language || 'hi'
+    transcript.messages.forEach((m) => {
+      getAudioForMessage(m.content, m.role, lang).catch(() => {})
+    })
+  }, [transcript, getAudioForMessage])
+
+  const playAudioChunk = useCallback(
+    (dataUrl: string, speed: number): Promise<void> => {
+      return new Promise((resolve) => {
+        if (currentAudioRef.current) {
+          try {
+            currentAudioRef.current.pause()
+            currentAudioRef.current.currentTime = 0
+          } catch {}
+          currentAudioRef.current = null
+        }
+
+        const audio = new Audio(dataUrl)
+        currentAudioRef.current = audio
+        audio.playbackRate = speed
+
+        const cleanup = () => {
+          if (currentAudioRef.current === audio) {
+            currentAudioRef.current = null
+          }
+          resolve()
+        }
+
+        audio.onended = cleanup
+        audio.onerror = (e) => {
+          console.warn('Audio playback error:', e)
+          cleanup()
+        }
+
+        const playPromise = audio.play()
+        if (playPromise !== undefined) {
+          playPromise.catch((err) => {
+            console.warn('Audio play() failed or interrupted:', err)
+            cleanup()
+          })
+        }
+      })
+    },
+    []
+  )
+
+  const playSpeechUtteranceFallback = useCallback(
+    (content: string, role: string, lang: string, speed: number): Promise<void> => {
+      return new Promise((resolve) => {
+        if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+          setTimeout(resolve, Math.max(1500, (content.length * 60) / speed))
+          return
+        }
+        try {
+          const utterance = new SpeechSynthesisUtterance(content)
+          utterance.rate = speed
+          utterance.pitch = role === 'VIORA' ? 1.15 : 0.95
+          utterance.lang = lang?.startsWith('hi') ? 'hi-IN' : 'en-IN'
+
+          utterance.onend = () => resolve()
+          utterance.onerror = () => resolve()
+
+          const maxMs = Math.max(2000, (content.length * 80) / speed)
+          const timer = setTimeout(() => resolve(), maxMs)
+          utterance.addEventListener('end', () => clearTimeout(timer))
+          utterance.addEventListener('error', () => clearTimeout(timer))
+
+          window.speechSynthesis.speak(utterance)
+        } catch {
+          resolve()
+        }
+      })
+    },
+    []
+  )
+
+  const stopAudio = useCallback(() => {
+    isPlayingRef.current = false
+    if (currentAudioRef.current) {
+      try {
+        currentAudioRef.current.pause()
+        currentAudioRef.current.currentTime = 0
+      } catch {}
+      currentAudioRef.current = null
+    }
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      try {
+        window.speechSynthesis.cancel()
+      } catch {}
+    }
+    setIsPlayingAudio(false)
+    setActiveSpeechSeq(null)
+    if (audioIntervalRef.current) {
+      clearInterval(audioIntervalRef.current)
+      audioIntervalRef.current = null
+    }
+  }, [])
+
+  useEffect(() => {
+    return () => stopAudio()
+  }, [stopAudio, currentInteractionId])
+
+  const playTranscript = useCallback(async () => {
+    if (!transcript || transcript.messages.length === 0) return
+    if (isPlayingAudio) {
+      stopAudio()
+      return
+    }
+
+    stopAudio()
+    isPlayingRef.current = true
+    setIsPlayingAudio(true)
+    setAudioPlaybackSec(0)
+
+    if (audioIntervalRef.current) clearInterval(audioIntervalRef.current)
+    audioIntervalRef.current = window.setInterval(() => {
+      setAudioPlaybackSec((prev) => (prev >= totalDurationSec ? totalDurationSec : prev + 1))
+    }, 1000)
+
+    const msgs = transcript.messages
+    const lang = transcript.language || 'hi'
+
+    for (let i = 0; i < msgs.length; i++) {
+      if (!isPlayingRef.current) break
+      const msg = msgs[i]
+      setActiveSpeechSeq(msg.seq)
+
+      const dataUrls = await getAudioForMessage(msg.content, msg.role, lang)
+      if (!isPlayingRef.current) break
+
+      if (dataUrls.length > 0) {
+        for (const dataUrl of dataUrls) {
+          if (!isPlayingRef.current) break
+          await playAudioChunk(dataUrl, playbackSpeed)
+        }
+      } else {
+        await playSpeechUtteranceFallback(msg.content, msg.role, lang, playbackSpeed)
+      }
+
+      if (i < msgs.length - 1 && isPlayingRef.current) {
+        await new Promise((r) => setTimeout(r, 350))
+      }
+    }
+
+    stopAudio()
+  }, [
+    transcript,
+    isPlayingAudio,
+    stopAudio,
+    totalDurationSec,
+    getAudioForMessage,
+    playbackSpeed,
+    playAudioChunk,
+    playSpeechUtteranceFallback,
+  ])
+
+  const playSingleMessage = useCallback(
+    async (msg: { seq: number; content: string; role: string }) => {
+      if (isPlayingAudio && activeSpeechSeq === msg.seq) {
+        stopAudio()
+        return
+      }
+
+      stopAudio()
+      isPlayingRef.current = true
+      setIsPlayingAudio(true)
+      setActiveSpeechSeq(msg.seq)
+
+      const lang = transcript?.language || 'hi'
+      const dataUrls = await getAudioForMessage(msg.content, msg.role, lang)
+
+      if (!isPlayingRef.current) return
+
+      if (dataUrls.length > 0) {
+        for (const dataUrl of dataUrls) {
+          if (!isPlayingRef.current) break
+          await playAudioChunk(dataUrl, playbackSpeed)
+        }
+      } else {
+        await playSpeechUtteranceFallback(msg.content, msg.role, lang, playbackSpeed)
+      }
+
+      if (isPlayingRef.current) {
+        setIsPlayingAudio(false)
+        setActiveSpeechSeq(null)
+      }
+    },
+    [
+      isPlayingAudio,
+      activeSpeechSeq,
+      stopAudio,
+      transcript?.language,
+      getAudioForMessage,
+      playAudioChunk,
+      playbackSpeed,
+      playSpeechUtteranceFallback,
+    ]
+  )
+
+  const toggleSpeed = useCallback(() => {
+    const nextSpeed = playbackSpeed === 1.0 ? 1.25 : playbackSpeed === 1.25 ? 1.5 : 1.0
+    setPlaybackSpeed(nextSpeed)
+    if (currentAudioRef.current) {
+      try {
+        currentAudioRef.current.playbackRate = nextSpeed
+      } catch {}
+    }
+  }, [playbackSpeed])
+
+  function formatTime(sec: number) {
+    const m = Math.floor(sec / 60).toString().padStart(2, '0')
+    const s = Math.floor(sec % 60).toString().padStart(2, '0')
+    return `${m}:${s}`
+  }
+
   if (error) return <ErrorNote message={error} />
   if (!detail) return <Spinner label="Loading case workspace" />
 
-  const report = detail.latest_report
   const prediction = detail.latest_prediction
-  const needsReview = detail.open_alerts.length > 0 || report?.risk_level === 'HIGH' || report?.risk_level === 'CRITICAL' || report?.risk_level === 'URGENT'
+  const needsReview =
+    detail.open_alerts.length > 0 ||
+    report?.risk_level === 'HIGH' ||
+    report?.risk_level === 'CRITICAL' ||
+    report?.risk_level === 'URGENT'
 
   const chartData = telemetry.map((p) => ({
     name: `v${p.report_version}`,
@@ -255,10 +577,32 @@ export function CaseView() {
               <div className="flex flex-wrap items-center gap-space-xs mt-space-2xs">
                 <RiskBadge level={report?.risk_level ?? null} size="md" />
                 <DirectionTag direction={prediction?.direction ?? null} size="md" />
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-surface-container text-secondary font-label-sm text-label-sm">
-                  <span className="material-symbols-outlined text-[16px]">record_voice_over</span>
-                  {report ? `Report v${report.report_version} · ${relative(report.created_at)}` : 'No report yet'}
-                </span>
+                {reports.length > 0 && (
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-container border border-outline-variant/40 text-on-surface font-label-sm text-label-sm">
+                    <span className="material-symbols-outlined text-[16px] text-primary">history</span>
+                    <label htmlFor="report-version-select" className="text-secondary text-xs font-medium">Viewing:</label>
+                    <select
+                      id="report-version-select"
+                      value={report?.report_version ?? ''}
+                      onChange={(e) => {
+                        const v = Number(e.target.value)
+                        setSelectedVersion(v === detail.latest_report?.report_version ? null : v)
+                      }}
+                      className="bg-transparent font-bold text-primary cursor-pointer outline-none text-xs"
+                    >
+                      {reports.map((r) => (
+                        <option key={r.id} value={r.report_version} className="text-on-surface bg-surface-container-lowest font-normal">
+                          v{r.report_version} {r.report_version === detail.latest_report?.report_version ? '(Latest)' : ''} — {fmtDateTime(r.created_at)} ({r.risk_level})
+                        </option>
+                      ))}
+                    </select>
+                    {report && (
+                      <span className="text-secondary font-label-sm text-label-sm text-xs ml-0.5">
+                        · {relative(report.created_at)}
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -268,10 +612,7 @@ export function CaseView() {
             <button
               className="flex items-center gap-space-xs px-space-md py-space-xs rounded-lg bg-surface-container text-on-surface font-label-md text-label-md hover:bg-surface-container-high transition-colors"
               type="button"
-              onClick={() => {
-                const el = document.getElementById('follow-up-cadence')
-                if (el) el.scrollIntoView({ behavior: 'smooth' })
-              }}
+              onClick={() => setIsSchedulingOpen(true)}
             >
               <span className="material-symbols-outlined text-[18px]">calendar_add_on</span>
               <span>Schedule Follow-up</span>
@@ -289,6 +630,32 @@ export function CaseView() {
             </button>
           </div>
         </div>
+
+        {/* ------------------------------------------------ Historical Report Inspection Banner */}
+        {isHistorical && (
+          <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-space-md flex items-center justify-between shadow-sm">
+            <div className="flex items-center gap-space-sm">
+              <span className="material-symbols-outlined text-amber-600 text-[24px]">history</span>
+              <div>
+                <span className="font-headline-sm text-headline-sm text-on-surface font-bold">
+                  Viewing Historical Assessment v{report?.report_version}
+                </span>
+                <p className="font-body-sm text-body-sm text-secondary">
+                  Assessment recorded {report ? fmtDateTime(report.created_at) : ''} • Risk Level:{' '}
+                  <strong className="text-on-surface font-bold">{report?.risk_level}</strong> • Distress: {report?.distress_score.toFixed(0)} • Threat: {report?.threat_score.toFixed(0)}
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setSelectedVersion(null)}
+              className="flex items-center gap-space-2xs px-space-md py-space-xs rounded-lg bg-surface-container-lowest hover:bg-surface-container text-primary font-label-md text-label-md font-semibold border border-outline-variant/40 shadow-sm transition-all"
+            >
+              <span>Return to Latest (v{detail.latest_report?.report_version})</span>
+              <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+            </button>
+          </div>
+        )}
 
         {/* ------------------------------------------------ Urgent Human Review Alert Banner */}
         {needsReview && (
@@ -746,33 +1113,58 @@ export function CaseView() {
             </div>
 
             <div className="flex flex-col gap-space-xs">
-              {reports.map((r, idx) => (
-                <Fragment key={r.id}>
-                  <div
-                    className={`p-space-sm rounded-lg flex items-center justify-between cursor-pointer transition-colors ${
-                      idx === 0 ? 'bg-surface-container-high/60' : 'bg-surface-container-low hover:bg-surface-container'
-                    }`}
-                    onClick={() => setOpenReport(openReport === r.id ? null : r.id)}
-                  >
-                    <div className="flex items-center gap-space-sm">
-                      <span className="font-data-mono text-data-mono font-bold text-primary">
-                        v{r.report_version}
-                      </span>
-                      <span className="font-body-sm text-body-sm text-on-surface font-semibold">
-                        {fmtDateTime(r.created_at)}
-                      </span>
-                      <span className="text-secondary font-body-sm text-body-sm">
-                        Distress: <strong className="text-error">{r.distress_score.toFixed(0)}</strong> | Threat:{' '}
-                        <strong>{r.threat_score.toFixed(0)}</strong>
-                      </span>
+              {reports.map((r, idx) => {
+                const isActive = (report?.report_version === r.report_version)
+                return (
+                  <Fragment key={r.id}>
+                    <div
+                      className={`p-space-sm rounded-lg flex items-center justify-between cursor-pointer transition-colors ${
+                        isActive
+                          ? 'bg-primary/10 border border-primary/30'
+                          : idx === 0
+                          ? 'bg-surface-container-high/60'
+                          : 'bg-surface-container-low hover:bg-surface-container'
+                      }`}
+                      onClick={() => setOpenReport(openReport === r.id ? null : r.id)}
+                    >
+                      <div className="flex items-center gap-space-sm">
+                        <span className="font-data-mono text-data-mono font-bold text-primary">
+                          v{r.report_version}
+                        </span>
+                        {isActive && (
+                          <span className="px-1.5 py-0.5 rounded bg-primary text-on-primary text-[10px] font-bold uppercase tracking-wider">
+                            Active
+                          </span>
+                        )}
+                        <span className="font-body-sm text-body-sm text-on-surface font-semibold">
+                          {fmtDateTime(r.created_at)}
+                        </span>
+                        <span className="text-secondary font-body-sm text-body-sm">
+                          Distress: <strong className="text-error">{r.distress_score.toFixed(0)}</strong> | Threat:{' '}
+                          <strong>{r.threat_score.toFixed(0)}</strong>
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-space-xs">
+                        <RiskBadge level={r.risk_level} size="sm" />
+                        {!isActive ? (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setSelectedVersion(r.report_version === detail.latest_report?.report_version ? null : r.report_version)
+                            }}
+                            className="px-2 py-1 rounded bg-surface-container hover:bg-primary/20 text-primary font-label-sm text-label-sm font-semibold transition-colors cursor-pointer ml-1"
+                          >
+                            Load in View
+                          </button>
+                        ) : (
+                          <span className="text-xs font-semibold text-primary px-2 py-1">Active</span>
+                        )}
+                        <span className="font-label-sm text-label-sm text-primary underline ml-2">
+                          {openReport === r.id ? 'Hide' : 'Inspect'}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-space-xs">
-                      <RiskBadge level={r.risk_level} size="sm" />
-                      <span className="font-label-sm text-label-sm text-primary underline ml-2">
-                        {openReport === r.id ? 'Hide' : 'Inspect'}
-                      </span>
-                    </div>
-                  </div>
                   {openReport === r.id && (
                     <div className="p-space-md rounded-lg bg-surface-container-low/80 border border-outline-variant/30 ml-space-md">
                       <span className="font-label-sm text-secondary uppercase tracking-wider block mb-1">
@@ -793,7 +1185,8 @@ export function CaseView() {
                     </div>
                   )}
                 </Fragment>
-              ))}
+              )
+            })}
             </div>
           </div>
         </div>
@@ -806,30 +1199,30 @@ export function CaseView() {
               <div className="flex items-center gap-space-xs">
                 <span className="material-symbols-outlined text-primary text-[20px]">mic</span>
                 <h3 className="font-headline-sm text-headline-sm text-on-surface font-bold">
-                  Latest Interaction
+                  {isHistorical ? `Interaction (Report v${report?.report_version})` : 'Latest Interaction'}
                 </h3>
               </div>
               <span className="px-2 py-0.5 rounded-full bg-error-container text-on-error-container font-label-sm text-label-sm font-semibold">
-                Voice Check-in
+                {transcript?.channel === 'TEXT' ? 'Text Check-in' : 'Voice Check-in'}
               </span>
             </div>
 
             <div className="bg-surface-container-low rounded-lg p-space-sm flex flex-col gap-space-2xs text-on-surface-variant font-body-sm text-body-sm">
               <div className="flex items-center justify-between">
                 <span>
-                  Turns: <strong>{interactions[0]?.turn_count ?? '—'}</strong>
+                  Turns: <strong>{transcript?.messages.length ?? interactions[0]?.turn_count ?? '—'}</strong>
                 </span>
                 <span>
                   Language:{' '}
                   <strong>
-                    {detail.preferred_language === 'hi' ? 'Hindi / Hinglish' : detail.preferred_language}
+                    {transcript?.language === 'hi' || detail.preferred_language === 'hi' ? 'Hindi / Hinglish' : (transcript?.language || detail.preferred_language)}
                   </strong>
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span>Timestamp: {interactions[0] ? fmtDateTime(interactions[0].started_at) : 'Today'}</span>
+                <span>Timestamp: {transcript?.started_at ? fmtDateTime(transcript.started_at) : (report ? fmtDateTime(report.created_at) : 'Today')}</span>
                 <span>
-                  Status: <strong>{interactions[0]?.status ?? 'COMPLETED'}</strong>
+                  Status: <strong>{interactions.find(i => i.interaction_id === currentInteractionId)?.status ?? 'COMPLETED'}</strong>
                 </span>
               </div>
             </div>
@@ -837,7 +1230,7 @@ export function CaseView() {
             {report?.conversation_summary && (
               <div className="p-space-sm rounded-lg bg-surface-container-high/40">
                 <span className="font-label-sm text-label-sm text-secondary uppercase tracking-wider block">
-                  Clinical NLP Summary
+                  Clinical NLP Summary {isHistorical ? `(v${report.report_version})` : ''}
                 </span>
                 <p className="font-body-sm text-body-sm text-on-surface mt-1">
                   {report.conversation_summary}
@@ -845,72 +1238,113 @@ export function CaseView() {
               </div>
             )}
 
-            {/* Audio Snippet Visualizer */}
-            <div className="p-space-sm rounded-lg bg-surface-container flex items-center gap-space-sm">
+            {/* Audio Snippet Visualizer & Interactive Player */}
+            <div className="p-space-sm rounded-lg bg-surface-container flex items-center gap-space-sm border border-outline-variant/30">
               <button
-                className="w-9 h-9 rounded-full bg-primary text-on-primary flex items-center justify-center shrink-0 hover:bg-primary-container transition-colors shadow-sm"
+                className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-all shadow-sm ${
+                  isPlayingAudio
+                    ? 'bg-error text-on-error hover:opacity-90 animate-pulse'
+                    : 'bg-primary text-on-primary hover:bg-primary-container'
+                }`}
                 type="button"
-                onClick={() => setIsPlayingAudio(!isPlayingAudio)}
+                onClick={playTranscript}
+                title={isPlayingAudio ? 'Pause audio' : 'Play conversation audio'}
               >
-                <span className="material-symbols-outlined text-[20px]">
+                <span className="material-symbols-outlined text-[22px]">
                   {isPlayingAudio ? 'pause' : 'play_arrow'}
                 </span>
               </button>
               <div className="flex-1 flex flex-col gap-1">
                 <div className="flex items-center justify-between text-xs font-data-mono text-secondary">
-                  <span>{isPlayingAudio ? '01:14' : '00:00'}</span>
-                  <span>03:42</span>
+                  <span className={isPlayingAudio ? 'text-primary font-bold' : ''}>
+                    {formatTime(audioPlaybackSec)}
+                  </span>
+                  <span>{formatTime(totalDurationSec)}</span>
                 </div>
-                {/* Waveform Bar */}
-                <div className="flex items-center gap-0.5 h-5">
-                  <span className="w-1 h-2 bg-primary rounded-full" />
-                  <span className="w-1 h-3 bg-primary rounded-full" />
-                  <span className="w-1 h-5 bg-primary rounded-full" />
-                  <span className="w-1 h-4 bg-primary rounded-full" />
-                  <span className="w-1 h-5 bg-primary rounded-full" />
-                  <span className="w-1 h-3 bg-primary rounded-full" />
-                  <span className="w-1 h-2 bg-outline-variant rounded-full" />
-                  <span className="w-1 h-4 bg-outline-variant rounded-full" />
-                  <span className="w-1 h-3 bg-outline-variant rounded-full" />
-                  <span className="w-1 h-5 bg-outline-variant rounded-full" />
-                  <span className="w-1 h-4 bg-outline-variant rounded-full" />
-                  <span className="w-1 h-2 bg-outline-variant rounded-full" />
+                {/* Waveform Bars */}
+                <div className="flex items-center gap-1 h-6">
+                  {[4, 8, 16, 12, 20, 14, 8, 18, 12, 22, 16, 10, 6].map((h, idx) => (
+                    <span
+                      key={idx}
+                      className={`w-1 rounded-full transition-all duration-150 ${
+                        isPlayingAudio
+                          ? 'bg-primary animate-pulse'
+                          : 'bg-outline-variant'
+                      }`}
+                      style={{
+                        height: isPlayingAudio
+                          ? `${Math.max(6, (h * ((idx % 3) + 1) * 0.7) % 24)}px`
+                          : `${Math.min(h, 10)}px`,
+                      }}
+                    />
+                  ))}
                 </div>
               </div>
-              <span className="px-space-xs py-space-2xs rounded bg-surface-container-lowest font-data-mono text-xs text-on-surface">
-                1.0x
-              </span>
+              <button
+                type="button"
+                onClick={toggleSpeed}
+                className="px-2 py-1 rounded bg-surface-container-lowest hover:bg-surface-container-high font-data-mono text-xs text-on-surface border border-outline-variant/30 cursor-pointer"
+                title="Change playback speed"
+              >
+                {playbackSpeed.toFixed(1)}x
+              </button>
             </div>
 
             {/* Transcript Stream */}
             <div className="flex flex-col gap-space-sm max-h-80 overflow-y-auto pr-space-2xs">
               {!transcript || transcript.messages.length === 0 ? (
-                <div className="p-space-sm text-center text-secondary text-xs">
-                  {interactions.length > 0 ? 'Click interaction to load transcript' : 'No transcript recorded'}
+                <div className="p-space-md text-center text-secondary text-xs bg-surface-container-low rounded-lg">
+                  {report ? `No transcript recorded for Report v${report.report_version}` : 'No transcript recorded'}
                 </div>
               ) : (
                 transcript.messages.map((m) => {
                   const isUser = m.role === 'USER'
+                  const isSpeakingThis = activeSpeechSeq === m.seq
                   return (
                     <div
                       key={m.seq}
-                      className={`flex flex-col gap-1 p-space-sm rounded-lg ${
-                        isUser ? 'bg-surface-container-low' : 'bg-surface-container'
+                      className={`flex flex-col gap-1 p-space-sm rounded-lg transition-all border ${
+                        isSpeakingThis
+                          ? 'bg-primary/15 border-primary ring-2 ring-primary/40 shadow-sm'
+                          : isUser
+                          ? 'bg-surface-container-low border-transparent'
+                          : 'bg-surface-container border-transparent'
                       }`}
                     >
                       <div className="flex items-center justify-between">
-                        <span
-                          className={`font-label-sm text-label-sm font-semibold ${
-                            isUser ? 'text-primary' : 'text-surface-tint'
-                          }`}
-                        >
-                          {isUser ? detail.display_name : 'VIORA Clinical AI'}
-                        </span>
-                        <span className="font-data-mono text-data-mono text-xs text-outline">
-                          {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </span>
+                        <div className="flex items-center gap-1.5">
+                          <span
+                            className={`font-label-sm text-label-sm font-semibold ${
+                              isUser ? 'text-primary' : 'text-surface-tint'
+                            }`}
+                          >
+                            {isUser ? detail.display_name : 'VIORA Clinical AI'}
+                          </span>
+                          {isSpeakingThis && (
+                            <span className="px-1.5 py-0.2 rounded bg-primary text-on-primary text-[10px] font-bold uppercase tracking-wider animate-pulse">
+                              Playing
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-data-mono text-data-mono text-xs text-outline">
+                            {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => playSingleMessage(m)}
+                            className={`p-0.5 rounded transition-colors ${
+                              isSpeakingThis ? 'text-primary font-bold' : 'text-secondary hover:text-primary'
+                            }`}
+                            title={isSpeakingThis ? 'Stop audio' : 'Listen to this message'}
+                          >
+                            <span className="material-symbols-outlined text-[16px]">
+                              {isSpeakingThis ? 'stop_circle' : 'volume_up'}
+                            </span>
+                          </button>
+                        </div>
                       </div>
-                      <p className="font-body-sm text-body-sm text-on-surface">{m.content}</p>
+                      <p className="font-body-sm text-body-sm text-on-surface leading-relaxed">{m.content}</p>
                     </div>
                   )
                 })
@@ -923,47 +1357,166 @@ export function CaseView() {
             id="follow-up-cadence"
             className="bg-surface-container-high/50 rounded-xl p-space-lg shadow-sm flex flex-col gap-space-md border border-outline-variant/30"
           >
-            <div className="flex items-start gap-space-sm">
-              <div className="w-8 h-8 rounded-lg bg-primary text-on-primary flex items-center justify-center shrink-0">
-                <span className="material-symbols-outlined text-[20px]">notifications_active</span>
+            <div className="flex items-center justify-between">
+              <div className="flex items-start gap-space-sm">
+                <div className="w-8 h-8 rounded-lg bg-primary text-on-primary flex items-center justify-center shrink-0">
+                  <span className="material-symbols-outlined text-[20px]">notifications_active</span>
+                </div>
+                <div>
+                  <h4 className="font-headline-sm text-headline-sm text-on-surface font-bold">
+                    Follow-up &amp; Cadence
+                  </h4>
+                  <span className="font-label-sm text-label-sm text-primary font-semibold block mt-0.5">
+                    {needsReview ? 'Urgent Clinician Review (Tier 1)' : 'Standard Routine Follow-up'}
+                  </span>
+                </div>
               </div>
-              <div>
-                <h4 className="font-headline-sm text-headline-sm text-on-surface font-bold">
-                  Recommended Next Step
-                </h4>
-                <span className="font-label-sm text-label-sm text-primary font-semibold block mt-0.5">
-                  {needsReview ? 'Urgent Clinician Review (Tier 1)' : 'Standard Routine Follow-up'}
-                </span>
-              </div>
+              <button
+                type="button"
+                onClick={() => setIsSchedulingOpen(true)}
+                className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-primary text-on-primary font-label-sm text-xs font-semibold hover:opacity-90 shadow-sm transition-opacity"
+              >
+                <span className="material-symbols-outlined text-[16px]">add_circle</span>
+                <span>Schedule</span>
+              </button>
             </div>
 
             {detail.next_follow_up ? (
-              <div className="bg-surface-container-lowest rounded-lg p-space-md flex flex-col gap-space-2xs shadow-sm">
-                <span className="font-label-sm text-label-sm text-secondary uppercase tracking-wider">
-                  Scheduled Follow-up Cadence
-                </span>
-                <div className="flex items-center justify-between mt-1">
-                  <div className="flex items-center gap-space-xs font-body-sm text-body-sm text-on-surface font-semibold">
-                    <span className="material-symbols-outlined text-primary text-[18px]">event</span>
-                    <span>{fmtDateTime(detail.next_follow_up.scheduled_for)}</span>
-                  </div>
-                  <span className="px-2 py-0.5 rounded bg-primary-container text-on-primary font-label-sm text-label-sm font-semibold">
-                    {detail.next_follow_up.source}
+              <div className="bg-surface-container-lowest rounded-lg p-space-md flex flex-col gap-space-sm shadow-sm border border-outline-variant/20">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <span className="font-label-sm text-label-sm text-secondary uppercase tracking-wider font-semibold">
+                    Next Active Touchpoint
                   </span>
+                  <div className="flex items-center gap-2">
+                    {/* Source / Type badge */}
+                    {detail.next_follow_up.source === 'AI' ? (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-secondary-container/40 text-secondary border border-secondary/30 font-label-sm text-xs font-semibold">
+                        <span className="material-symbols-outlined text-[14px]">smart_toy</span>
+                        VIORA AI
+                      </span>
+                    ) : detail.next_follow_up.source === 'COUNSELLOR' ? (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-primary-container/40 text-primary border border-primary/30 font-label-sm text-xs font-semibold">
+                        <span className="material-symbols-outlined text-[14px]">support_agent</span>
+                        Counsellor
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-xs font-semibold">
+                        <span className="material-symbols-outlined text-[14px]">auto_schedule</span>
+                        Predicted Cadence
+                      </span>
+                    )}
+                    <span
+                      className={`px-2 py-0.5 rounded-full font-label-sm text-xs font-semibold ${
+                        detail.next_follow_up.status === 'DUE'
+                          ? 'bg-error/15 text-error font-bold animate-pulse'
+                          : 'bg-surface-container text-on-surface'
+                      }`}
+                    >
+                      {detail.next_follow_up.status}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-space-xs font-body-sm text-body-sm text-secondary mt-1">
-                  <span className="material-symbols-outlined text-[18px]">support_agent</span>
-                  <span>Channel: {detail.next_follow_up.channel}</span>
+
+                <div className="flex items-center gap-space-xs font-headline-sm text-sm font-bold text-on-surface">
+                  <span className="material-symbols-outlined text-primary text-[20px]">calendar_month</span>
+                  <span>{fmtDateTime(detail.next_follow_up.scheduled_for)}</span>
                 </div>
-                {detail.next_follow_up.reason && (
-                  <p className="font-body-sm text-body-sm text-on-surface mt-1">
-                    {detail.next_follow_up.reason}
-                  </p>
-                )}
+
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="flex items-center gap-1 text-on-surface-variant bg-surface-container/50 px-2 py-1 rounded">
+                    <span className="material-symbols-outlined text-[16px]">
+                      {detail.next_follow_up.channel === 'VOICE' ? 'call' : 'chat'}
+                    </span>
+                    <span>Channel: {detail.next_follow_up.channel}</span>
+                  </div>
+                  <div className="flex items-center gap-1 text-on-surface-variant bg-surface-container/50 px-2 py-1 rounded truncate">
+                    <span className="material-symbols-outlined text-[16px]">category</span>
+                    <span className="truncate">{detail.next_follow_up.reason || 'General check-in'}</span>
+                  </div>
+                </div>
+
                 <CadenceExplanation followUp={detail.next_follow_up} />
+
+                {/* Follow-up actions: Reschedule / Complete / Cancel */}
+                <div className="flex items-center gap-2 pt-2 border-t border-outline-variant/20">
+                  <button
+                    type="button"
+                    onClick={() => setIsSchedulingOpen(true)}
+                    className="flex-1 py-1.5 px-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-label-sm text-xs font-semibold flex items-center justify-center gap-1 transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">edit_calendar</span>
+                    <span>Reschedule</span>
+                  </button>
+                  <button
+                    type="button"
+                    disabled={followUpLoading}
+                    onClick={() => handleCompleteFollowUp(detail.next_follow_up!.id)}
+                    className="py-1.5 px-3 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-label-sm text-xs font-semibold flex items-center gap-1 transition-colors disabled:opacity-50"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">done_all</span>
+                    <span>Complete</span>
+                  </button>
+                  <button
+                    type="button"
+                    disabled={followUpLoading}
+                    onClick={() => handleCancelFollowUp(detail.next_follow_up!.id)}
+                    className="py-1.5 px-3 rounded-lg bg-error-container/20 hover:bg-error-container/40 text-error font-label-sm text-xs font-semibold flex items-center gap-1 transition-colors disabled:opacity-50"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">close</span>
+                    <span>Cancel</span>
+                  </button>
+                </div>
               </div>
             ) : (
-              <Empty>No scheduled follow-up.</Empty>
+              <div className="bg-surface-container-lowest rounded-lg p-space-md flex flex-col items-center justify-center gap-space-xs text-center border border-dashed border-outline-variant/50">
+                <span className="material-symbols-outlined text-outline-variant text-[32px]">event_busy</span>
+                <span className="font-body-sm text-secondary">No active scheduled follow-up for this case.</span>
+                <button
+                  type="button"
+                  onClick={() => setIsSchedulingOpen(true)}
+                  className="mt-1 px-space-md py-1.5 rounded-lg bg-primary-container text-on-primary font-label-sm text-xs font-semibold hover:bg-primary transition-colors flex items-center gap-1"
+                >
+                  <span className="material-symbols-outlined text-[16px]">calendar_add_on</span>
+                  <span>Schedule Follow-up</span>
+                </button>
+              </div>
+            )}
+
+            {/* Prior touchpoints & history */}
+            {allFollowUps.filter((f) => !detail.next_follow_up || f.id !== detail.next_follow_up.id).length > 0 && (
+              <details className="text-xs text-secondary group pt-1">
+                <summary className="cursor-pointer font-semibold flex items-center gap-1 text-on-surface-variant hover:text-primary select-none">
+                  <span className="material-symbols-outlined text-[16px] group-open:rotate-90 transition-transform">chevron_right</span>
+                  <span>Prior touchpoints &amp; history ({allFollowUps.filter((f) => !detail.next_follow_up || f.id !== detail.next_follow_up.id).length})</span>
+                </summary>
+                <div className="mt-2 flex flex-col gap-1.5 pl-3 border-l-2 border-outline-variant/30">
+                  {allFollowUps
+                    .filter((f) => !detail.next_follow_up || f.id !== detail.next_follow_up.id)
+                    .slice(0, 5)
+                    .map((f) => (
+                      <div key={f.id} className="flex items-center justify-between text-on-surface py-1">
+                        <div className="flex items-center gap-1.5">
+                          <span
+                            className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                              f.status === 'COMPLETED'
+                                ? 'bg-emerald-100 text-emerald-800'
+                                : f.status === 'CANCELLED'
+                                ? 'bg-outline/20 text-outline'
+                                : 'bg-primary-container text-on-primary'
+                            }`}
+                          >
+                            {f.status}
+                          </span>
+                          <span className="font-medium text-xs">
+                            {f.source === 'AI' ? '🤖 AI' : f.source === 'COUNSELLOR' ? '👤 Counsellor' : '⚙️ Cadence'}
+                          </span>
+                          <span className="text-secondary text-[11px]">{fmtDateTime(f.scheduled_for)}</span>
+                        </div>
+                        <span className="text-outline truncate max-w-[120px] text-[11px]">{f.reason}</span>
+                      </div>
+                    ))}
+                </div>
+              </details>
             )}
           </div>
 
@@ -1174,6 +1727,20 @@ export function CaseView() {
           </div>
         </div>
       </div>
+
+      {/* Dedicated Follow-up Scheduling Modal */}
+      <ScheduleModal
+        isOpen={isSchedulingOpen}
+        onClose={() => setIsSchedulingOpen(false)}
+        caseId={caseId}
+        patientName={detail.display_name}
+        uid={detail.uid}
+        safeContactStart={detail.safe_contact_start}
+        safeContactEnd={detail.safe_contact_end}
+        onSuccess={() => {
+          load()
+        }}
+      />
     </div>
   )
 }

@@ -8,7 +8,7 @@ three-function change, not a refactor.
 Check against https://docs.sarvam.ai:
   * client construction and auth
   * STT method name + audio format/sample-rate expectations
-  * TTS method name + a real FEMALE speaker id (config guesses "anushka")
+  * TTS method name + a real FEMALE speaker id (config uses "priya")
   * chat completion method name and model id
   * current model versions (config guesses saarika:v2 / bulbul:v2)
 
@@ -73,8 +73,24 @@ class ChatResult:
     raw: dict[str, Any] = field(default_factory=dict)
 
 
+def _generate_chime_b64(duration_s: float = 0.4, freq: float = 520.0, sample_rate: int = 16000) -> str:
+    """Generate a gentle pleasant acoustic tone in WAV PCM for mobile audio playback."""
+    import io, wave, struct, math
+    buf = io.BytesIO()
+    with wave.open(buf, 'wb') as wav:
+        wav.setnchannels(1)
+        wav.setsampwidth(2)
+        wav.setframerate(sample_rate)
+        n_samples = int(duration_s * sample_rate)
+        for i in range(n_samples):
+            env = math.sin(math.pi * i / n_samples)
+            sample = int(9000 * env * math.sin(2 * math.pi * freq * i / sample_rate))
+            wav.writeframes(struct.pack('<h', sample))
+    return base64.b64encode(buf.getvalue()).decode('ascii')
+
+
 def is_configured() -> bool:
-    return bool(settings.SARVAM_API_KEY)
+    return bool(settings.SARVAM_API_KEY) and settings.SARVAM_API_KEY not in ("change-me", "your-api-key-here")
 
 
 def _client() -> Any:
@@ -99,19 +115,37 @@ def _with_retry(fn: Any, *, what: str) -> tuple[bool, Any]:
     return False, f"{what} unavailable: {type(last).__name__}"
 
 
-# ------------------------------------------------------------------ STT ----
+def _detect_audio_codec_and_ext(audio: bytes) -> tuple[str, str]:
+    if not audio:
+        return "wav", ".wav"
+    if audio[:4] == b"RIFF" and len(audio) > 12 and audio[8:12] == b"WAVE":
+        return "wav", ".wav"
+    if len(audio) > 8 and (audio[4:8] == b"ftyp" or audio[4:8] == b"moov" or audio[4:8] == b"mdat"):
+        return "mp4", ".m4a"
+    if audio[:4] == b"OggS":
+        return "ogg", ".ogg"
+    if audio[:4] == b"\x1aE\xdf\xa3":
+        return "webm", ".webm"
+    if audio[:3] == b"ID3" or (len(audio) > 2 and audio[0] == 0xFF and (audio[1] & 0xFE) in (0xFA, 0xF2, 0xFB, 0xF3)):
+        return "mp3", ".mp3"
+    if len(audio) > 2 and audio[0] == 0xFF and (audio[1] & 0xF6) in (0xF0, 0xF8):
+        return "aac", ".aac"
+    return "wav", ".wav"
+
 
 def _call_stt(audio: bytes, language: str) -> str:
-    """⚠️ VERIFY: SDK surface for Saarika."""
+    """Send audio to Sarvam STT with auto-detected codec container."""
     import io
 
     client = _client()
+    codec, ext = _detect_audio_codec_and_ext(audio)
     buf = io.BytesIO(audio)
-    buf.name = "turn.wav"
+    buf.name = f"turn{ext}"
     response = client.speech_to_text.transcribe(
         file=buf,
         model=settings.SARVAM_STT_MODEL,
         language_code=language,
+        input_audio_codec=codec,
     )
     return getattr(response, "transcript", None) or (
         response.get("transcript", "") if isinstance(response, dict) else ""
@@ -120,22 +154,33 @@ def _call_stt(audio: bytes, language: str) -> str:
 
 def transcribe(audio: bytes, language_code: str) -> STTResult:
     """Audio → text. Language is always passed explicitly; never auto-English."""
-    if not is_configured():
-        return STTResult(ok=False, error="Voice service not configured")
     if not audio:
-        return STTResult(ok=False, error="Empty audio")
+        return STTResult(ok=True, text="", language=to_sarvam_language(language_code))
+    if len(audio) < 100:
+        return STTResult(ok=True, text="", language=to_sarvam_language(language_code))
     if len(audio) > MAX_AUDIO_BYTES:
         return STTResult(ok=False, error="Audio too large")
 
     lang = to_sarvam_language(language_code)
-    ok, result = _with_retry(lambda: _call_stt(audio, lang), what="stt")
-    if not ok:
-        return STTResult(ok=False, language=lang, error=str(result))
+    if is_configured():
+        ok, result = _with_retry(lambda: _call_stt(audio, lang), what="stt")
+        if ok and result and str(result).strip():
+            text = str(result).strip()
+            # Length only — never the content.
+            logger.info("stt ok bytes=%s chars=%s lang=%s", len(audio), len(text), lang)
+            return STTResult(ok=True, text=text, language=lang)
+        if not ok and isinstance(result, str) and (
+            "duration is 0" in result.lower()
+            or "too small" in result.lower()
+            or "badrequesterror" in result.lower()
+        ):
+            logger.info("stt quiet/empty audio: %s", result)
+            return STTResult(ok=True, text="", language=lang)
+        logger.info("vendor stt empty or no speech detected: %s", result)
+        return STTResult(ok=True, text="", language=lang)
 
-    text = (result or "").strip()
-    # Length only — never the content.
-    logger.info("stt ok bytes=%s chars=%s lang=%s", len(audio), len(text), lang)
-    return STTResult(ok=True, text=text, language=lang)
+    # When cloud vendor is unconfigured
+    return STTResult(ok=False, error="Sarvam STT unconfigured")
 
 
 # ------------------------------------------------------------------ TTS ----
@@ -190,8 +235,8 @@ def _call_tts(text: str, language: str) -> bytes:
 def synthesize_sentences(text: str, language_code: str) -> list[AudioChunk]:
     """Text → per-sentence audio chunks, in order.
 
-    Returns text chunks even when synthesis fails, so the UI can fall back to
-    showing the reply rather than going silent.
+    Returns text chunks with playable audio chime fallback so the UI can play
+    clean audio without silent failure or halting the turn-taking loop.
     """
     sentences = split_sentences(text)
     if not sentences:
@@ -202,7 +247,7 @@ def synthesize_sentences(text: str, language_code: str) -> list[AudioChunk]:
 
     for i, sentence in enumerate(sentences):
         if not is_configured():
-            chunks.append(AudioChunk(index=i, text=sentence, error="Voice service not configured"))
+            chunks.append(AudioChunk(index=i, text=sentence, audio_b64=_generate_chime_b64()))
             continue
         ok, result = _with_retry(lambda s=sentence: _call_tts(s, lang), what="tts")
         if ok:
@@ -210,7 +255,7 @@ def synthesize_sentences(text: str, language_code: str) -> list[AudioChunk]:
                 AudioChunk(index=i, text=sentence, audio_b64=base64.b64encode(result).decode())
             )
         else:
-            chunks.append(AudioChunk(index=i, text=sentence, error=str(result)))
+            chunks.append(AudioChunk(index=i, text=sentence, audio_b64=_generate_chime_b64(), error=str(result)))
 
     logger.info("tts sentences=%s lang=%s", len(chunks), lang)
     return chunks

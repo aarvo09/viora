@@ -18,6 +18,7 @@ import type {
   Report,
   ReviewRequest,
   ReviewResponse,
+  ScheduleCallRequest,
   TelemetryPoint,
   Transcript,
 } from './types'
@@ -161,6 +162,31 @@ const httpApi = {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
+
+  scheduleFollowUp: (caseId: number, payload: ScheduleCallRequest) =>
+    request<FollowUp>(`/cases/${caseId}/schedule-call`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+
+  cancelFollowUp: (caseId: number, followUpId: number) =>
+    request<FollowUp>(`/cases/${caseId}/follow-ups/${followUpId}/cancel`, {
+      method: 'POST',
+    }),
+
+  completeFollowUp: (caseId: number, followUpId: number) =>
+    request<FollowUp>(`/cases/${caseId}/follow-ups/${followUpId}/complete`, {
+      method: 'POST',
+    }),
+
+  synthesizeText: (text: string, language = 'hi') =>
+    request<{ sentences: { index: number; text: string; audio_b64?: string }[] }>(
+      '/tts/synthesize',
+      {
+        method: 'POST',
+        body: JSON.stringify({ text, language }),
+      },
+    ),
 }
 
 export type Api = typeof httpApi

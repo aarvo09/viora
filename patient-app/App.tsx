@@ -20,7 +20,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { StyleSheet, View } from 'react-native'
 import { StatusBar } from 'expo-status-bar'
 import { api } from './src/api/client'
-import type { PatientProfile } from './src/api/types'
+import type { DueCall, PatientProfile } from './src/api/types'
 
 /* Screens */
 import { HomeScreen } from './src/screens/HomeScreen'
@@ -35,7 +35,8 @@ import { WellbeingScreen } from './src/screens/WellbeingScreen'
 import { HistoryScreen } from './src/screens/HistoryScreen'
 import { ProfileScreen } from './src/screens/ProfileScreen'
 
-/* Legacy screens still in use */
+/* Components */
+import { IncomingCallModal } from './src/components/IncomingCallModal'
 import { ProfilePicker } from './src/components/ProfilePicker'
 import { Welcome } from './src/components/Welcome'
 
@@ -52,8 +53,37 @@ export default function App() {
   const [profiles, setProfiles] = useState<PatientProfile[]>([])
   const [current, setCurrent] = useState<PatientProfile | null>(null)
   const [loadingProfiles, setLoadingProfiles] = useState(true)
+  const [dueCall, setDueCall] = useState<DueCall | null>(null)
+  const [declinedFollowUpId, setDeclinedFollowUpId] = useState<number | null>(null)
 
   const nav = useNavigator({ name: 'welcome' })
+
+  // Periodic polling for scheduled / due calls
+  useEffect(() => {
+    if (!current) return
+    let alive = true
+
+    const checkDue = async () => {
+      try {
+        const res = await api.dueCall(current.uid)
+        if (!alive) return
+        if (res.due && res.follow_up_id && res.follow_up_id !== declinedFollowUpId) {
+          setDueCall(res)
+        } else if (!res.due) {
+          setDueCall(null)
+        }
+      } catch {
+        /* network/offline resilience */
+      }
+    }
+
+    void checkDue()
+    const timer = setInterval(checkDue, 3500)
+    return () => {
+      alive = false
+      clearInterval(timer)
+    }
+  }, [current, declinedFollowUpId])
 
   useEffect(() => {
     let alive = true
@@ -191,6 +221,26 @@ export default function App() {
 
       {route.name === 'support' && (
         <SupportScreen onBack={() => nav.pop()} />
+      )}
+
+      {/* Incoming Call Experience Modal */}
+      {current && (
+        <IncomingCallModal
+          visible={Boolean(dueCall?.due && route.name !== 'session')}
+          profile={current}
+          channel={dueCall?.channel === 'TEXT' ? 'TEXT' : 'VOICE'}
+          onAnswer={() => {
+            const ch: 'TEXT' | 'VOICE' = dueCall?.channel === 'TEXT' ? 'TEXT' : 'VOICE'
+            setDueCall(null)
+            nav.push({ name: 'session', channel: ch })
+          }}
+          onDecline={() => {
+            if (dueCall?.follow_up_id) {
+              setDeclinedFollowUpId(dueCall.follow_up_id)
+            }
+            setDueCall(null)
+          }}
+        />
       )}
     </View>
   )

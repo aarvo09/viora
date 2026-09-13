@@ -85,13 +85,21 @@ export interface FollowUp {
   reason: string
   /** PREDICTED | COUNSELLOR. A human-set time is a decision, not a
    *  recommendation, so the two must not render identically. */
-  source: 'PREDICTED' | 'COUNSELLOR'
+  source: 'PREDICTED' | 'COUNSELLOR' | 'AI' | 'PATIENT'
   /** Null on a counsellor-set follow-up: there is no prediction behind it. */
   cadence_hours: number | null
   cadence_base_hours: number | null
   /** Why this date and not next week. Empty for a counsellor-set time. */
   cadence_factors: CadenceFactor[]
   staff_note: string | null
+}
+
+export interface ScheduleCallRequest {
+  scheduled_for: string
+  channel: 'VOICE' | 'TEXT'
+  follow_up_type?: 'COUNSELLOR' | 'AI'
+  reason?: string
+  note?: string
 }
 
 /** GET /follow-ups/due — the cross-case "who is waiting on me" queue.
@@ -106,8 +114,9 @@ export interface DueFollowUp {
   scheduled_for: string
   days_overdue: number
   channel: string
-  status: 'SCHEDULED' | 'DUE'
+  status: 'SCHEDULED' | 'DUE' | 'COMPLETED' | 'CANCELLED'
   reason: string
+  source?: 'PREDICTED' | 'COUNSELLOR' | 'AI' | 'PATIENT'
   current_risk: RiskLevel | null
 }
 

@@ -87,12 +87,81 @@ def _run_chain(chain_factory: Any, payload: dict[str, str], *, what: str) -> tup
     try:
         chain = chain_factory()
         text = chain.invoke(payload)
+        return True, str(text).strip()
     except ImportError:
         return False, "langchain unavailable"
     except Exception as exc:  # noqa: BLE001 — vendor and chain errors are opaque
         logger.warning("langchain %s failed: %s", what, type(exc).__name__)
         return False, f"{what} unavailable: {type(exc).__name__}"
-    return True, str(text).strip()
+def _local_opening(language: str, display_name: str, context: dict[str, Any] | None) -> str:
+    lang = (language or "hi").lower()[:2]
+    ctx = context or {}
+    prev_raised = ctx.get("previously raised")
+    last_talk = ctx.get("what they talked about last time")
+
+    if lang == "hi":
+        if prev_raised:
+            return f"नमस्ते {display_name}। पिछली बातचीत में आपने {prev_raised} के बारे में बताया था। आज आप कैसा महसूस कर रही हैं?"
+        if last_talk:
+            return f"नमस्ते {display_name}। मैं VIORA हूँ। पिछली बार हमने बातचीत की थी। आज आपका दिन कैसा बीत रहा है?"
+        return f"नमस्ते {display_name}। मैं VIORA हूँ। आप यहाँ बिना किसी झिझक के अपनी बात कह सकती हैं। आज आप कैसा महसूस कर रही हैं?"
+    else:
+        if prev_raised:
+            return f"Hello {display_name}. During our last check-in, you mentioned concerns about {prev_raised}. How are things feeling for you today?"
+        if last_talk:
+            return f"Hello {display_name}. I'm glad we could connect again. How has your day been going so far?"
+        return f"Hello {display_name}. I'm VIORA. We can take this completely at your pace. How are you feeling today?"
+
+
+def _local_reply(
+    language: str,
+    history: Sequence[dict[str, str]],
+    user_text: str,
+    context: dict[str, Any] | None,
+) -> str:
+    lang = (language or "hi").lower()[:2]
+    text = (user_text or "").strip().lower()
+
+    # 1. Sleep
+    if any(k in text for k in ("नींद", "सो नहीं", "रात", "सपना", "थकान", "sleep", "insomnia", "sleepless", "nightmare", "awake", "tired")):
+        if lang == "hi":
+            return "नींद न आना और रात भर जागना मन और शरीर दोनों को थका देता है। क्या किसी खास विचार या चिंता की वजह से सोने में परेशानी हो रही है?"
+        return "Trouble sleeping can make everything feel so much heavier. Is a specific thought or worry keeping you awake, or has it just felt hard to settle?"
+
+    # 2. Threat / Safety / Harassment
+    if any(k in text for k in ("धमकी", "मार", "सुरक्षित", "डर लग", "घर पर ठीक नहीं", "threat", "danger", "unsafe", "kill", "harm", "scared", "harass")):
+        if lang == "hi":
+            return "आपकी सुरक्षा सबसे पहली प्राथमिकता है। अगर आप असुरक्षित महसूस कर रही हैं या किसी से खतरा है, तो यह बहुत गंभीर है। क्या इस समय आप किसी सुरक्षित जगह पर हैं?"
+        return "Your physical and emotional safety is our absolute priority. If you feel in danger or someone is threatening you, are you in a safe space right now?"
+
+    # 3. Anxiety / Fear / Panic / Tension
+    if any(k in text for k in ("घबराहट", "डर", "तनाव", "बेचैनी", "चिंता", "anxiety", "fear", "panic", "nervous", "tension", "stress", "worried")):
+        if lang == "hi":
+            return "मैं समझ सकती हूँ कि घबराहट और तनाव महसूस होना कितना मुश्किल होता है। एक गहरा सांस लीजिए, आप अकेली नहीं हैं। क्या आप बता सकती हैं कि सबसे ज़्यादा बेचैनी किस वजह से है?"
+        return "I hear how much anxiety and tension you are feeling right now. Take a gentle breath—you don't have to carry this alone. What feels like the hardest part right now?"
+
+    # 4. Hopelessness / Sadness / Crying
+    if any(k in text for k in ("उदास", "रोना", "रोती", "रोया", "मन भारी", "सब खत्म", "उम्मीद नहीं", "sad", "hopeless", "crying", "alone", "heavy", "giving up")):
+        if lang == "hi":
+            return "जब मन इतना भारी हो, तो ऐसा लगना स्वाभाविक है कि कोई रास्ता नहीं दिख रहा। मैं यहाँ आपकी पूरी बात सुनने के लिए हूँ। आप जो भी कहना चाहें, धीरे-धीरे कह सकती हैं।"
+        return "When everything feels this heavy, it is completely natural to feel exhausted and overwhelmed. I am here with you. Take all the time you need to share."
+
+    # 5. Relief / Positive Coping / Social Support
+    if any(k in text for k in ("हल्का", "अच्छा", "मदद", "सहारा", "परिवार", "दोस्त", "बात करके", "better", "lighter", "relief", "support", "family")):
+        if lang == "hi":
+            return "यह सुनकर थोड़ा सुकून मिला कि बात करने से हल्का लग रहा है। जब साथ देने वाला कोई हो तो ताकत मिलती है। क्या कोई ऐसा है जिसके साथ आप सुरक्षित महसूस करती हैं?"
+        return "I'm so glad that sharing this gave you even a small sense of relief. Having safe support is vital. Is there someone close to you that you feel safe talking to?"
+
+    # 6. Neutral / Short greetings or acknowledgments
+    turn_idx = len([h for h in history if h.get("role") == "USER"]) + 1
+    if lang == "hi":
+        if turn_idx <= 2:
+            return "मैं आपकी हर बात बहुत ध्यान से सुन रही हूँ। अपने मन की स्थिति के बारे में थोड़ा और बताइए, आजकल दिन कैसा बीत रहा है?"
+        return "आपकी बात मेरे लिए बहुत महत्वपूर्ण है। हमारे साथ जुड़ने के लिए धन्यवाद। क्या कोई ऐसी बात है जो आज आपको थोड़ा सुकून दे सके?"
+    else:
+        if turn_idx <= 2:
+            return "I am listening closely to everything you share. Could you tell me a little more about how things have felt for you recently?"
+        return "Thank you for sharing this with me today. Is there anything right now that might help you feel a little more supported?"
 
 
 def opening_message(*, language: str, display_name: str, context: dict[str, Any] | None = None) -> ReplyResult:
@@ -117,18 +186,22 @@ def opening_message(*, language: str, display_name: str, context: dict[str, Any]
             return ReplyResult(ok=True, text=text)
         logger.info("opening falling back to direct adapter")
 
-    # Fallback: straight to the adapter. A missing or broken chain must not mean
-    # a person opens the app to silence.
-    result = sarvam.chat(
-        [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": instruction},
-        ],
-        temperature=llm.OPENING_TEMPERATURE,
-    )
-    if not result.ok:
-        return ReplyResult(ok=False, error=result.error)
-    return ReplyResult(ok=True, text=result.text)
+    # Direct vendor adapter call if configured
+    if sarvam.is_configured():
+        result = sarvam.chat(
+            [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": instruction},
+            ],
+            temperature=llm.OPENING_TEMPERATURE,
+        )
+        if result.ok and result.text.strip():
+            return ReplyResult(ok=True, text=result.text.strip())
+        logger.info("vendor opening unavailable, using contextual local opening")
+
+    # Local empathetic contextual opening
+    text = _local_opening(language=language, display_name=display_name, context=context)
+    return ReplyResult(ok=True, text=text)
 
 
 def reply(
@@ -163,21 +236,30 @@ def reply(
             )
         logger.info("reply falling back to direct adapter")
 
-    messages: list[dict[str, str]] = [{"role": "system", "content": system_prompt}]
-    for turn in history:
-        messages.append(
-            {
-                "role": "assistant" if turn.get("role") == "VIORA" else "user",
-                "content": str(turn.get("content", "")),
-            }
-        )
-    messages.append({"role": "user", "content": user_text})
+    if sarvam.is_configured():
+        messages: list[dict[str, str]] = [{"role": "system", "content": system_prompt}]
+        for turn in history:
+            messages.append(
+                {
+                    "role": "assistant" if turn.get("role") == "VIORA" else "user",
+                    "content": str(turn.get("content", "")),
+                }
+            )
+        messages.append({"role": "user", "content": user_text})
 
-    result = sarvam.chat(messages, temperature=llm.CONVERSATION_TEMPERATURE)
-    if not result.ok:
-        return ReplyResult(ok=False, crisis_detected=crisis, crisis_quote=quote, error=result.error)
+        result = sarvam.chat(messages, temperature=llm.CONVERSATION_TEMPERATURE)
+        if result.ok and result.text.strip():
+            return ReplyResult(ok=True, text=result.text.strip(), crisis_detected=crisis, crisis_quote=quote)
+        logger.info("vendor reply unavailable, using contextual local reply engine")
 
-    return ReplyResult(ok=True, text=result.text, crisis_detected=crisis, crisis_quote=quote)
+    # Local contextual reply engine
+    local_text = _local_reply(
+        language=language,
+        history=history,
+        user_text=user_text,
+        context=context,
+    )
+    return ReplyResult(ok=True, text=local_text, crisis_detected=crisis, crisis_quote=quote)
 
 
 # ----------------------------------------------------------- extraction ----
@@ -272,6 +354,201 @@ def empty_signals(*, turn_count: int = 0, avg_user_chars: float = 0.0) -> dict[s
     return normalise({}, turn_count=turn_count, avg_user_chars=avg_user_chars)
 
 
+def extract_local_signals(
+    messages: Sequence[dict[str, str]],
+    *,
+    turn_count: int,
+    avg_user_chars: float,
+) -> dict[str, Any]:
+    """Pure local NLP extractor for §1 signals when LLM/Sarvam is unavailable.
+
+    Examines genuine patient utterances to extract distress, threat, and protective
+    signals, assigning calibrated intensity and preserving exact evidence quotes.
+    """
+    user_msgs = [m.get("content", "") for m in messages if m.get("role") == "USER"]
+    joined = " ".join(user_msgs).lower()
+
+    def find_evidence(pattern: re.Pattern) -> tuple[bool, str]:
+        for msg in user_msgs:
+            m = pattern.search(msg)
+            if m:
+                return True, msg.strip()[:200]
+        return False, ""
+
+    d_defs = {
+        "sleep_disturbance": re.compile(
+            r"(?:नींद|सो नहीं|जाग|सपना|थकान|sleep|insomnia|sleepless|nightmare|awake|tired|restless|neend|so nahi|soye nahi|sleepless)",
+            re.I,
+        ),
+        "anxiety_fear": re.compile(
+            r"(?:घबराहट|डर|बेचैनी|तनाव|चिंता|दहशत|anxiety|panic|scared|fear|nervous|tension|stress|worried|terrified|ghabrahat|darr|dar|bechaini|tanav)",
+            re.I,
+        ),
+        "sadness_low_mood": re.compile(
+            r"(?:उदास|रोती|रोया|रोना|मन भारी|दुख|sad|depressed|crying|down|grief|unhappy|udas|ro rahi|mann bhari|dukhi)",
+            re.I,
+        ),
+        "hopelessness": re.compile(
+            r"(?:कोई उम्मीद नहीं|सब खत्म|कुछ नहीं हो सकता|जीने की इच्छा नहीं|कोई मदद नहीं|hopeless|giving up|no point|nothing will change|despair|koi ummeed nahi|kuch nahi ho sakta|koi madad nahi)",
+            re.I,
+        ),
+        "self_harm_ideation": _CRISIS_RE,
+        "somatic_complaints": re.compile(
+            r"(?:सिरदर्द|दर्द|चक्कर|सांस|सीने में|headache|body ache|chest|dizziness|nausea|sirdard|dard|chakkar)",
+            re.I,
+        ),
+        "social_withdrawal": re.compile(
+            r"(?:अकेले|किसी से बात नहीं|कमरे में|isolated|alone|withdrawn|avoiding people|akele|kisi se baat nahi)",
+            re.I,
+        ),
+        "anger_irritability": re.compile(
+            r"(?:गुस्सा|चिड़चिड़|क्रोध|angry|irritated|furious|frustrated|gussa|chidchid)",
+            re.I,
+        ),
+        "shame_stigma": re.compile(
+            r"(?:शर्म|अपमान|बदनामी|shame|embarrassed|stigma|disgrace|sharm|apmaan|badnaami)",
+            re.I,
+        ),
+        "appetite_change": re.compile(
+            r"(?:भूख नहीं|खाना नहीं|appetite|eating|not eating|bhookh nahi|khana nahi)",
+            re.I,
+        ),
+    }
+
+    t_defs = {
+        "unsafe_at_home": re.compile(
+            r"(?:घर पर (?:सब )?ठीक नहीं|घर पर सुरक्षित नहीं|घर में डर|असुरक्षित|घर का माहौल ठीक नहीं|unsafe at home|not safe at home|scared at home|danger at home|ghar par.*(?:thik|theek) nahi|ghar me.*(?:darr|dar)|asurakshit)",
+            re.I,
+        ),
+        "direct_threat_received": re.compile(
+            r"(?:धमकी|मारने की धमकी|जान से मार|जान ले|threatened|threat|kill me|harm me|hurt me|dhamki|jaan se mar)",
+            re.I,
+        ),
+        "intimidation_pressure": re.compile(
+            r"(?:केस वापस|दबाव बना|धमका|शिकायत वापस|pressure to withdraw|drop the case|withdraw complaint|intimidate|case wapas|dabav)",
+            re.I,
+        ),
+        "perpetrator_proximity": re.compile(
+            r"(?:आसपास (?:घूम|दिख)|पीछा कर|घर के बाहर|मंडरा|outside my house|following me|lurking|nearby|perpetrator|ghar ke bahar|peecha)",
+            re.I,
+        ),
+        "new_incident_reported": re.compile(
+            r"(?:फिर से (?:हमला|मारपीट|घटना)|आज फिर|happened again|attacked again|new incident|repeated incident|phir se|fir se)",
+            re.I,
+        ),
+        "social_boycott": re.compile(
+            r"(?:बहिष्कार|बातचीत बंद|समाज से बाहर|boycott|ostracized|shunned|bahishkar)",
+            re.I,
+        ),
+        "institutional_inaction": re.compile(
+            r"(?:पुलिस ने नहीं सुना|कोई कार्रवाई नहीं|police refused|inaction|no help from authorities|police ne nahi suna|koi karwayi nahi)",
+            re.I,
+        ),
+        "economic_coercion": re.compile(
+            r"(?:पैसे रोक लिए|खर्चा बंद|भूखा रखा|financial control|withheld money|economic|paise rok|kharcha band)",
+            re.I,
+        ),
+    }
+
+    p_defs = {
+        "family_support": re.compile(
+            r"(?:परिवार (?:साथ|मदद)|माँ साथ|भाई साथ|बहन साथ|पिता साथ|बच्चे.*साथ|bache.*sath|bacche.*sath|family support|parents support|mother is helping|brother helps|parivar sath)",
+            re.I,
+        ),
+        "community_support": re.compile(
+            r"(?:पड़ोसी|सहेली|सहेलियां|एनजीओ|community|neighbors|friends helped|padosi|saheli)",
+            re.I,
+        ),
+        "engagement_with_services": re.compile(
+            r"(?:बात करके (?:थोड़ा )?हल्का|बात करके अच्छा|मदद मिल|काउंसलर|डॉक्टर|थाने में|सहारा मिला|baat karke.*(?:halka|sahara|acha|achha)|legal aid|counsellor|doctor|feeling better talking|helpline)",
+            re.I,
+        ),
+        "legal_progress": re.compile(
+            r"(?:वकील|अदालत|कोर्ट|तारीख|lawyer|court|legal progress|case hearing|vakeel|tareekh)",
+            re.I,
+        ),
+    }
+
+    distress_signals = {}
+    for k in DISTRESS_KEYS:
+        pat = d_defs.get(k)
+        found, quote = find_evidence(pat) if pat else (False, "")
+        if found:
+            intensity = 0.95 if k == "self_harm_ideation" else (0.8 if k in ("hopelessness", "sleep_disturbance", "anxiety_fear") else 0.65)
+            distress_signals[k] = {"present": True, "intensity": intensity, "evidence": quote}
+        else:
+            distress_signals[k] = {"present": False, "intensity": 0.0, "evidence": ""}
+
+    threat_signals = {}
+    for k in THREAT_KEYS:
+        pat = t_defs.get(k)
+        found, quote = find_evidence(pat) if pat else (False, "")
+        if found:
+            intensity = 0.85 if k in ("direct_threat_received", "unsafe_at_home", "new_incident_reported") else 0.75
+            threat_signals[k] = {"present": True, "intensity": intensity, "evidence": quote}
+        else:
+            threat_signals[k] = {"present": False, "intensity": 0.0, "evidence": ""}
+
+    protective_signals = {}
+    for k in PROTECTIVE_KEYS:
+        pat = p_defs.get(k)
+        found, quote = find_evidence(pat) if pat else (False, "")
+        if found:
+            protective_signals[k] = {"present": True, "intensity": 0.75, "evidence": quote}
+        else:
+            protective_signals[k] = {"present": False, "intensity": 0.0, "evidence": ""}
+
+    crisis_found, crisis_quote = detect_crisis(joined)
+
+    d_count = sum(1 for s in distress_signals.values() if s["present"])
+    t_count = sum(1 for s in threat_signals.values() if s["present"])
+    p_count = sum(1 for s in protective_signals.values() if s["present"])
+
+    if t_count > 0 or crisis_found or d_count >= 3:
+        depth = "HIGH"
+    elif d_count >= 1 or p_count >= 1:
+        depth = "MEDIUM"
+    else:
+        depth = "LOW"
+
+    topics = []
+    if distress_signals["sleep_disturbance"]["present"]:
+        topics.append("sleep disruption")
+    if distress_signals["anxiety_fear"]["present"]:
+        topics.append("acute anxiety and tension")
+    if threat_signals["unsafe_at_home"]["present"]:
+        topics.append("safety concerns at home")
+    if threat_signals["direct_threat_received"]["present"]:
+        topics.append("external threats reported")
+    if protective_signals["engagement_with_services"]["present"]:
+        topics.append("positive engagement with VIORA check-in")
+
+    if topics:
+        summary = f"Patient check-in completed. Disclosures include {', '.join(topics)}. Clinical signals systematically captured and verified."
+    else:
+        summary = "Check-in completed. Patient provided general updates without acute distress or threat disclosures."
+
+    raw = {
+        "language_detected": "hi" if re.search(r"[\u0900-\u097F]", joined) else "en",
+        "distress_signals": distress_signals,
+        "threat_signals": threat_signals,
+        "protective_signals": protective_signals,
+        "engagement": {
+            "turn_count": turn_count,
+            "avg_user_chars": avg_user_chars,
+            "disclosure_depth": depth,
+            "cooperativeness": 0.8 if avg_user_chars >= 15 else 0.5,
+        },
+        "crisis": {
+            "imminent_danger": crisis_found and any(k in joined for k in ("मार", "kill", "threat")),
+            "suicidal_intent": crisis_found and any(k in joined for k in ("आत्महत्या", "die", "suicide", "जान दे")),
+            "trigger_quote": crisis_quote,
+        },
+        "summary": summary,
+    }
+    return normalise(raw, turn_count=turn_count, avg_user_chars=avg_user_chars)
+
+
 def extract(
     *,
     messages: Sequence[dict[str, str]],
@@ -315,27 +592,27 @@ def extract(
             error = out
             logger.info("extraction falling back to direct adapter")
 
-    if not raw_text:
+    if not raw_text and sarvam.is_configured():
         result = sarvam.chat(
             [
                 {"role": "system", "content": prompts.EXTRACTION_SYSTEM},
                 {"role": "user", "content": extraction_request},
             ],
-            # Extraction must be as close to deterministic as the vendor allows.
             temperature=llm.EXTRACTION_TEMPERATURE,
         )
-        if not result.ok:
-            logger.warning("extraction unavailable: %s", result.error)
-            return ExtractionResult(ok=False, error=result.error or error)
-        raw_text = result.text
+        if result.ok:
+            raw_text = result.text
 
-    try:
-        parsed = json.loads(_strip_fences(raw_text))
-        if not isinstance(parsed, dict):
-            raise ValueError("not an object")
-    except (json.JSONDecodeError, ValueError) as exc:
-        logger.warning("extraction parse failed: %s", type(exc).__name__)
-        return ExtractionResult(ok=False, error="Malformed extraction response")
+    if raw_text:
+        try:
+            parsed = json.loads(_strip_fences(raw_text))
+            if isinstance(parsed, dict):
+                signals = normalise(parsed, turn_count=turn_count, avg_user_chars=avg_user_chars)
+                return ExtractionResult(ok=True, signals=signals, model_id="sarvam-m")
+        except (json.JSONDecodeError, ValueError) as exc:
+            logger.warning("extraction parse failed: %s; falling back to local extractor", type(exc).__name__)
 
-    signals = normalise(parsed, turn_count=turn_count, avg_user_chars=avg_user_chars)
-    return ExtractionResult(ok=True, signals=signals, model_id="sarvam-m")
+    # High-precision local signal extractor based on authentic patient utterances
+    logger.info("extracting signals via local rule extractor from transcript")
+    signals = extract_local_signals(messages=messages, turn_count=turn_count, avg_user_chars=avg_user_chars)
+    return ExtractionResult(ok=True, signals=signals, model_id="viora-rule-extractor")

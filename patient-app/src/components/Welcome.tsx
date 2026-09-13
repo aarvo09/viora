@@ -1,7 +1,5 @@
-/* Welcome screen — extracted from the old App.tsx. */
-
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native'
-import { colors, space, type as typeScale } from '../theme'
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native'
+import { colors, radius, space, type as typeScale } from '../theme'
 
 export function Welcome({ loading, onDone }: { loading: boolean; onDone: () => void }) {
   return (
@@ -11,9 +9,16 @@ export function Welcome({ loading, onDone }: { loading: boolean; onDone: () => v
       {loading ? (
         <ActivityIndicator color={colors.primary} style={{ marginTop: space.lg }} />
       ) : (
-        <Text style={styles.tap} onPress={onDone}>
-          Tap to begin
-        </Text>
+        <Pressable
+          onPress={onDone}
+          hitSlop={20}
+          style={({ pressed }) => [
+            styles.btn,
+            pressed && { opacity: 0.8, transform: [{ scale: 0.98 }] },
+          ]}
+        >
+          <Text style={styles.tap}>Tap to begin</Text>
+        </Pressable>
       )}
     </View>
   )

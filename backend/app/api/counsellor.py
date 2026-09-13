@@ -36,11 +36,12 @@ from app.models import (
     StaffUser,
     User,
 )
-from app.services import scheduler
+from app.services import sarvam, scheduler
 from app.schemas import (
     ActivityItem,
     AlertListItem,
     AlertOut,
+    AudioSentence,
     CaseDetail,
     CaseListItem,
     DashboardSummary,
@@ -53,6 +54,8 @@ from app.schemas import (
     ReviewResponse,
     RiskDistribution,
     ScheduleCallRequest,
+    SynthesizeRequest,
+    SynthesizeResponse,
     TelemetryPoint,
     Transcript,
     TranscriptMessage,
@@ -278,7 +281,7 @@ def schedule_call(
     # Scheduling contact is a casework decision.
     staff: StaffUser = Depends(require_roles(*CASEWORK_ROLES)),
 ) -> FollowUp:
-    """Set the time for this person's next AI check-in, overriding the prediction.
+    """Set the time for this person's next check-in (AI or Counsellor).
 
     Contract §6 gives the AI the recommendation and the human the decision. The
     predicted follow-up is cancelled, not deleted, so the record shows both what
@@ -305,11 +308,50 @@ def schedule_call(
         channel=payload.channel,
         staff_id=staff.id,
         note=payload.note,
+        follow_up_type=payload.follow_up_type or "COUNSELLOR",
+        reason=payload.reason,
     )
+
+
+@router.post("/cases/{case_id}/follow-ups/{follow_up_id}/cancel", response_model=FollowUpOut)
+def cancel_follow_up(
+    case_id: int,
+    follow_up_id: int,
+    db: Session = Depends(get_db),
+    staff: StaffUser = Depends(require_roles(*CASEWORK_ROLES)),
+) -> FollowUp:
+    follow_up = db.get(FollowUp, follow_up_id)
+    if not follow_up or follow_up.case_id != case_id:
+        raise HTTPException(404, "Follow-up not found")
+    prev = follow_up.status
+    follow_up.status = "CANCELLED"
+    scheduler._event(db, follow_up, prev, "CANCELLED")
+    db.commit()
+    db.refresh(follow_up)
+    return follow_up
+
+
+@router.post("/cases/{case_id}/follow-ups/{follow_up_id}/complete", response_model=FollowUpOut)
+def complete_follow_up(
+    case_id: int,
+    follow_up_id: int,
+    db: Session = Depends(get_db),
+    staff: StaffUser = Depends(require_roles(*CASEWORK_ROLES)),
+) -> FollowUp:
+    follow_up = db.get(FollowUp, follow_up_id)
+    if not follow_up or follow_up.case_id != case_id:
+        raise HTTPException(404, "Follow-up not found")
+    prev = follow_up.status
+    follow_up.status = "COMPLETED"
+    scheduler._event(db, follow_up, prev, "COMPLETED")
+    db.commit()
+    db.refresh(follow_up)
+    return follow_up
 
 
 @router.get("/follow-ups/due", response_model=list[dict])
 def list_due_follow_ups(
+    include_upcoming: bool = True,
     db: Session = Depends(get_db),
     _: StaffUser = Depends(current_staff),
 ) -> list[dict]:
@@ -333,7 +375,7 @@ def list_due_follow_ups(
     out: list[dict] = []
     for follow_up, case, user in rows:
         scheduled = follow_up.scheduled_for
-        if scheduled > now:
+        if not include_upcoming and scheduled > now:
             continue  # not yet due; the case view shows upcoming ones
         report = _latest_report(db, case.id)
         out.append(
@@ -345,7 +387,7 @@ def list_due_follow_ups(
                 "uid": user.uid,
                 "preferred_language": user.preferred_language,
                 "scheduled_for": scheduled,
-                "days_overdue": (now - scheduled).days,
+                "days_overdue": max(0, (now - scheduled).days) if scheduled <= now else 0,
                 "channel": follow_up.channel,
                 "status": follow_up.status,
                 "reason": follow_up.reason,
@@ -407,6 +449,24 @@ def get_transcript(
             TranscriptMessage(seq=m.seq, role=m.role, content=m.content, created_at=m.created_at)
             for m in messages
         ],
+    )
+
+
+@router.post("/tts/synthesize", response_model=SynthesizeResponse)
+def synthesize_speech(
+    payload: SynthesizeRequest,
+    _: StaffUser = Depends(current_staff),
+) -> SynthesizeResponse:
+    """Synthesize text chunks with neural voice (Sarvam TTS / Bulbul)."""
+    text = (payload.text or "").strip()
+    if not text:
+        return SynthesizeResponse(sentences=[])
+    chunks = sarvam.synthesize_sentences(text, payload.language or "hi")
+    return SynthesizeResponse(
+        sentences=[
+            AudioSentence(index=c.index, text=c.text, audio_b64=c.audio_b64)
+            for c in chunks
+        ]
     )
 
 

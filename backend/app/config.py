@@ -38,7 +38,7 @@ class Settings(BaseSettings):
     SARVAM_TTS_MODEL: str = "bulbul:v3"
     # Female voice, calm and warm. Pace 1.0 is the vendor's natural rate:
     # deliberately slowing speech to sound "therapeutic" reads as condescending.
-    SARVAM_TTS_SPEAKER: str = "anushka"
+    SARVAM_TTS_SPEAKER: str = "priya"
     SARVAM_TTS_PACE: float = 1.0
     SARVAM_TIMEOUT_SECONDS: float = 30.0
 
@@ -75,7 +75,7 @@ class Settings(BaseSettings):
     # In-process sweep that moves SCHEDULED → DUE → MISSED. Disable it in tests
     # or when running a one-off command; nothing else depends on it being on.
     SCHEDULER_ENABLED: bool = True
-    SCHEDULER_INTERVAL_SECONDS: int = 300
+    SCHEDULER_INTERVAL_SECONDS: int = 10
 
     model_config = SettingsConfigDict(
         env_file=".env",

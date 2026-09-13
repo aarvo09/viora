@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Plus+Jakarta+Sans:wght@600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"on-tertiary-fixed-variant":"#2f2ebe","surface-tint":"#4d44e3","on-background":"#0b1c30","surface-variant":"#d3e4fe","on-primary-container":"#dad7ff","on-primary":"#ffffff","surface-bright":"#f8f9ff","surface-container-highest":"#d3e4fe","error":"#ba1a1a","inverse-primary":"#c3c0ff","surface-container-lowest":"#ffffff","on-error-container":"#93000a","surface-container-high":"#dce9ff","surface-container":"#e5eeff","secondary-container":"#dae2fd","on-tertiary":"#ffffff","background":"#f8f9ff","tertiary-fixed":"#e1e0ff","tertiary-fixed-dim":"#c0c1ff","on-secondary":"#ffffff","surface":"#f8f9ff","primary":"#3525cd","primary-fixed":"#e2dfff","tertiary-container":"#4b4dd8","on-secondary-fixed-variant":"#3f465c","surface-dim":"#cbdbf5","error-container":"#ffdad6","on-surface":"#0b1c30","outline":"#777587","primary-fixed-dim":"#c3c0ff","on-error":"#ffffff","on-surface-variant":"#464555","outline-variant":"#c7c4d8","primary-container":"#4f46e5","tertiary":"#3130c0","inverse-surface":"#213145","surface-container-low":"#eff4ff","on-secondary-fixed":"#131b2e","on-secondary-container":"#5c647a","secondary":"#565e74","inverse-on-surface":"#eaf1ff","secondary-fixed":"#dae2fd","on-primary-fixed":"#0f0069","on-tertiary-container":"#d9d8ff","on-tertiary-fixed":"#07006c","on-primary-fixed-variant":"#3323cc","secondary-fixed-dim":"#bec6e0"},borderRadius:{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},spacing:{"space-base":"1.0rem","space-2xl":"3.0rem","space-lg":"1.5rem","panel-max-width":"90rem","space-xl":"2.0rem","space-sm":"0.5rem","space-xs":"0.25rem","gutter":"1.25rem","space-2xs":"0.125rem","space-md":"0.75rem","sidebar-width":"17.5rem"},fontFamily:{"body-sm":["Inter"],"data-metric":["Plus Jakarta Sans"],"label-sm":["Inter"],"data-mono":["Inter"],"headline-lg":["Plus Jakarta Sans"],"display-lg":["Plus Jakarta Sans"],"body-md":["Inter"],"headline-xl":["Plus Jakarta Sans"],"headline-sm":["Plus Jakarta Sans"],"label-md":["Inter"],"body-lg":["Inter"]},fontSize:{"body-sm":["0.75rem",{"lineHeight":"1.125rem","fontWeight":"400"}],"data-metric":["1.5rem",{"lineHeight":"1.75rem","letterSpacing":"-0.02em","fontWeight":"700"}],"label-sm":["0.75rem",{"lineHeight":"1.0rem","letterSpacing":"0.025em","fontWeight":"600"}],"data-mono":["0.8125rem",{"lineHeight":"1.25rem","fontWeight":"500"}],"headline-lg":["1.25rem",{"lineHeight":"1.75rem","letterSpacing":"-0.015em","fontWeight":"600"}],"display-lg":["2.25rem",{"lineHeight":"2.75rem","letterSpacing":"-0.025em","fontWeight":"700"}],"body-md":["0.875rem",{"lineHeight":"1.375rem","fontWeight":"400"}],"headline-xl":["1.75rem",{"lineHeight":"2.25rem","letterSpacing":"-0.02em","fontWeight":"700"}],"headline-sm":["1.0rem",{"lineHeight":"1.5rem","letterSpacing":"-0.01em","fontWeight":"600"}],"label-md":["0.875rem",{"lineHeight":"1.25rem","fontWeight":"500"}],"body-lg":["1.0rem",{"lineHeight":"1.625rem","fontWeight":"400"}]}}}};</script></head><body class="bg-background font-body-md text-on-surface antialiased"><aside class="fixed left-0 top-0 h-full w-sidebar-width bg-inverse-surface z-50 flex flex-col justify-between shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex flex-col"><div class="px-space-lg pt-space-lg pb-space-md"><div class="flex items-center gap-space-sm"><div class="w-8 h-8 rounded-lg bg-primary-container flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[20px]">psychology</span></div><div><span class="font-headline-lg text-headline-lg text-inverse-on-surface tracking-tight block">VIORA</span><span class="font-label-sm text-label-sm text-surface-dim font-medium tracking-wide uppercase block">Clinical Decision Support</span></div></div></div><nav class="flex flex-col gap-space-2xs px-space-sm mt-space-md" data-active-classes="bg-primary-container text-on-primary font-semibold"><a class="flex items-center justify-between px-space-md py-space-sm rounded-lg font-label-md text-label-md text-inverse-on-surface/80 hover:bg-surface-variant/20 hover:text-inverse-on-surface transition-colors" data-path="dashboard" href="#"><div class="flex items-center gap-space-md"><span class="material-symbols-outlined text-[20px]">space_dashboard</span><span>Dashboard</span></div></a><a aria-current="page" class="flex items-center justify-between px-space-md py-space-sm rounded-lg transition-colors bg-primary-container text-on-primary font-semibold" data-path="cases" href="#"><div class="flex items-center gap-space-md"><span class="material-symbols-outlined text-[20px]">folder_shared</span><span>Cases</span></div><span class="font-label-sm text-label-sm px-space-sm py-space-2xs rounded-full bg-secondary text-inverse-on-surface">18</span></a><a class="flex items-center justify-between px-space-md py-space-sm rounded-lg font-label-md text-label-md text-inverse-on-surface/80 hover:bg-surface-variant/20 hover:text-inverse-on-surface transition-colors" data-path="alerts" href="#"><div class="flex items-center gap-space-md"><span class="material-symbols-outlined text-[20px]">warning</span><span>Alerts</span></div><span class="font-label-sm text-label-sm px-space-sm py-space-2xs rounded-full bg-error text-on-error">3</span></a><a class="flex items-center justify-between px-space-md py-space-sm rounded-lg font-label-md text-label-md text-inverse-on-surface/80 hover:bg-surface-variant/20 hover:text-inverse-on-surface transition-colors" data-path="conversations" href="#"><div class="flex items-center gap-space-md"><span class="material-symbols-outlined text-[20px]">forum</span><span>Conversations</span></div></a><a class="flex items-center justify-between px-space-md py-space-sm rounded-lg font-label-md text-label-md text-inverse-on-surface/80 hover:bg-surface-variant/20 hover:text-inverse-on-surface transition-colors" data-path="follow-ups" href="#"><div class="flex items-center gap-space-md"><span class="material-symbols-outlined text-[20px]">event_upcoming</span><span>Follow-ups</span></div><span class="font-label-sm text-label-sm px-space-sm py-space-2xs rounded-full bg-surface-variant/30 text-inverse-on-surface">5</span></a><a class="flex items-center justify-between px-space-md py-space-sm rounded-lg font-label-md text-label-md text-inverse-on-surface/80 hover:bg-surface-variant/20 hover:text-inverse-on-surface transition-colors" data-path="reports" href="#"><div class="flex items-center gap-space-md"><span class="material-symbols-outlined text-[20px]">description</span><span>Reports</span></div></a><a class="flex items-center justify-between px-space-md py-space-sm rounded-lg font-label-md text-label-md text-inverse-on-surface/80 hover:bg-surface-variant/20 hover:text-inverse-on-surface transition-colors" data-path="analytics" href="#"><div class="flex items-center gap-space-md"><span class="material-symbols-outlined text-[20px]">insights</span><span>Analytics</span></div></a><a class="flex items-center justify-between px-space-md py-space-sm rounded-lg font-label-md text-label-md text-inverse-on-surface/80 hover:bg-surface-variant/20 hover:text-inverse-on-surface transition-colors" data-path="settings" href="#"><div class="flex items-center gap-space-md"><span class="material-symbols-outlined text-[20px]">settings</span><span>Settings</span></div></a></nav></div><div class="p-space-md m-space-sm bg-surface-variant/10 rounded-xl"><div class="flex items-center gap-space-md"><div class="relative"><div class="w-9 h-9 rounded-full bg-primary-container text-on-primary font-headline-sm text-headline-sm flex items-center justify-center">DS</div><span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-secondary ring-2 ring-inverse-surface"></span></div><div class="flex-1 min-w-0"><div class="flex items-center justify-between"><span class="font-label-md text-label-md text-inverse-on-surface truncate block">Dr. Sharma</span></div><span class="font-body-sm text-body-sm text-surface-dim truncate block">Senior Clinical Counsellor</span><div class="flex items-center gap-space-xs mt-space-2xs"><span class="w-1.5 h-1.5 rounded-full bg-surface-dim"></span><span class="font-label-sm text-label-sm text-inverse-on-surface/70">On Duty</span></div></div></div></div></aside><div class="pl-sidebar-width min-h-screen flex flex-col bg-background"><header class="fixed top-0 left-sidebar-width right-0 h-16 bg-surface/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 px-space-xl flex items-center justify-between"><div class="w-full max-w-lg relative flex items-center"><span class="material-symbols-outlined absolute left-space-md text-on-surface-variant text-[20px]">search</span><input class="w-full pl-10 pr-14 py-space-xs bg-surface-container-lowest rounded-lg font-body-md text-body-md text-on-surface placeholder:text-outline focus:outline-none" placeholder="Search cases by patient name, UID, or condition..." type="text"/><span class="absolute right-space-sm font-data-mono text-data-mono text-on-surface-variant bg-surface-container px-space-xs py-space-2xs rounded">⌘K</span></div><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-xs px-space-md py-space-xs rounded-full bg-surface-container"><span class="w-2 h-2 rounded-full bg-primary-container"></span><span class="font-label-sm text-label-sm text-on-surface font-medium">Live Telemetry Active</span></div><button class="relative p-space-xs rounded-lg bg-surface-container-low text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" type="button"><span class="material-symbols-outlined text-[22px]">notifications</span><span class="absolute top-1 right-1 w-2 h-2 bg-error rounded-full"></span></button><button class="flex items-center gap-space-xs px-space-md py-space-xs rounded-lg bg-primary-container text-on-primary font-label-md text-label-md hover:bg-primary transition-colors shadow-[0_1px_8px_rgba(0,0,0,0.04)]" type="button"><span class="material-symbols-outlined text-[18px]">add</span><span>New Referral / Case</span></button><div class="flex items-center gap-space-sm pl-space-xs"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="w-full pt-16 px-space-xl pb-space-2xl"><div class="flex flex-col w-full gap-space-lg">
+<!-- Top Navigation & Clinical Case Header Context -->
+<div class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs text-on-surface-variant">
+<a class="flex items-center gap-space-xs font-label-md text-label-md text-primary hover:underline" href="#">
+<span class="material-symbols-outlined text-[18px]">arrow_back</span>
+<span>Back to Cases</span>
+</a>
+<span class="text-outline-variant">/</span>
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-secondary">Inpatient &amp; Outpatient Telemetry</span>
+<span class="text-outline-variant">/</span>
+<span class="font-data-mono text-data-mono font-medium text-on-surface">UID-1001</span>
+</div>
+<div class="flex items-center gap-space-xs text-on-surface-variant font-label-sm text-label-sm">
+<span class="w-2 h-2 rounded-full bg-surface-tint animate-pulse"></span>
+<span>Telemetry Synchronized: <strong>9:35 AM</strong></span>
+</div>
+</div>
+<!-- Case Header Hero Band -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col xl:flex-row xl:items-center justify-between gap-space-md">
+<div class="flex flex-col md:flex-row md:items-center gap-space-md">
+<!-- Patient Identity Pip -->
+<div class="w-14 h-14 rounded-xl bg-surface-container-high flex items-center justify-center font-headline-xl text-headline-xl text-primary font-semibold shadow-inner">
+          AS
+        </div>
+<div class="flex flex-col gap-space-2xs">
+<div class="flex flex-wrap items-center gap-space-xs">
+<h1 class="font-headline-xl text-headline-xl text-on-surface tracking-tight">Ananya Sharma</h1>
+<span class="bg-surface-container px-space-xs py-space-2xs rounded font-data-mono text-data-mono text-on-surface-variant">UID 1001</span>
+<span class="text-outline-variant font-label-sm text-label-sm">•</span>
+<span class="font-body-md text-body-md text-secondary">22 yrs</span>
+<span class="text-outline-variant font-label-sm text-label-sm">•</span>
+<span class="font-body-md text-body-md text-secondary">Female</span>
+<span class="text-outline-variant font-label-sm text-label-sm">•</span>
+<span class="font-body-md text-body-md text-on-surface-variant font-medium">Ward 3B / Outpatient Telemetry</span>
+</div>
+<div class="flex flex-wrap items-center gap-space-xs mt-space-2xs">
+<!-- Risk Badge -->
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-error-container text-on-error-container font-label-sm text-label-sm font-semibold tracking-wide">
+<span class="w-2 h-2 rounded-full bg-error animate-ping"></span>
+              HIGH RISK
+            </span>
+<!-- Directional Vector -->
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-surface-container-highest text-primary font-label-sm text-label-sm font-semibold">
+<span class="material-symbols-outlined text-[16px]">trending_up</span>
+              ESCALATING
+            </span>
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-surface-container text-secondary font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[16px]">record_voice_over</span>
+              Today · 9:34 AM (Voice Analysis v5)
+            </span>
+</div>
+</div>
+</div>
+<!-- Action Group -->
+<div class="flex flex-wrap items-center gap-space-xs">
+<button class="flex items-center gap-space-xs px-space-md py-space-xs rounded-lg bg-surface-container text-on-surface font-label-md text-label-md hover:bg-surface-container-high transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">calendar_add_on</span>
+<span>Schedule Follow-up</span>
+</button>
+<button class="flex items-center gap-space-xs px-space-md py-space-xs rounded-lg bg-primary-container text-on-primary font-label-md text-label-md hover:bg-primary transition-all shadow-sm" onclick="document.getElementById('decision-station').scrollIntoView({behavior: 'smooth'})" type="button">
+<span class="material-symbols-outlined text-[18px]">fact_check</span>
+<span>Complete Human Review</span>
+</button>
+<button class="p-space-xs rounded-lg bg-surface-container-low text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" title="Export Clinical Summary" type="button">
+<span class="material-symbols-outlined text-[20px]">download</span>
+</button>
+<button class="p-space-xs rounded-lg bg-surface-container-low text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" title="Case Options" type="button">
+<span class="material-symbols-outlined text-[20px]">more_vert</span>
+</button>
+</div>
+</div>
+<!-- Controlled Urgent Human Review Alert Banner -->
+<div class="bg-error-container/40 rounded-xl p-space-md flex flex-col md:flex-row items-start md:items-center justify-between gap-space-md shadow-sm">
+<div class="flex items-start gap-space-md">
+<div class="w-9 h-9 rounded-lg bg-error text-on-error flex items-center justify-center shrink-0 mt-0.5">
+<span class="material-symbols-outlined text-[22px]">gpp_maybe</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs">
+<span class="font-headline-sm text-headline-sm text-on-error-container tracking-tight">URGENT HUMAN REVIEW REQUIRED</span>
+<span class="px-2 py-0.2 rounded font-data-mono text-data-mono bg-error text-on-error text-xs uppercase font-semibold">Flag v5</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface mt-space-2xs max-w-4xl">
+            A safety-related threat indicator and acute sleep disruption were detected during the latest voice check-in (9:34 AM). Immediate clinical intervention is recommended under Tier-1 safety protocol.
+          </p>
+</div>
+</div>
+<button class="shrink-0 flex items-center gap-space-xs px-space-md py-space-xs rounded-lg bg-error text-on-error font-label-md text-label-md hover:bg-on-error-container transition-colors shadow-sm" onclick="document.getElementById('decision-station').scrollIntoView({behavior: 'smooth'})" type="button">
+<span>Open Review Form</span>
+<span class="material-symbols-outlined text-[18px]">south</span>
+</button>
+</div>
+</div>
+<!-- Main Canvas: 62% Left Deep Telemetry, 38% Right Transcript & Action Stations -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg">
+<!-- LEFT COLUMN (62% ~ 7.4 cols, spanned as 7 or 8 on 12-col grid) -->
+<div class="lg:col-span-7 xl:col-span-8 flex flex-col gap-space-lg">
+<!-- 1. Executive Telemetry Strip -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col gap-space-md">
+<div class="flex items-center justify-between pb-space-xs">
+<div>
+<span class="font-label-sm text-label-sm text-secondary uppercase tracking-wider block">Clinical Trajectory Summary</span>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Latest Well-being Report (v5)</h2>
+</div>
+<span class="font-data-mono text-data-mono text-on-surface-variant bg-surface-container-low px-space-sm py-space-2xs rounded-lg">
+            Generated Today · 09:35 AM
+          </span>
+</div>
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-space-sm">
+<!-- Metric 1: Current Distress -->
+<div class="bg-surface-container-low rounded-xl p-space-md flex flex-col justify-between">
+<span class="font-label-sm text-label-sm text-secondary">Current Distress</span>
+<div class="flex items-baseline gap-space-2xs my-space-2xs">
+<span class="font-data-metric text-data-metric text-error">67</span>
+<span class="font-body-sm text-body-sm text-secondary">/ 100</span>
+</div>
+<div class="inline-flex items-center gap-1 font-label-sm text-label-sm text-error font-semibold">
+<span class="material-symbols-outlined text-[16px]">arrow_upward</span>
+<span>+18 vs prev</span>
+</div>
+</div>
+<!-- Metric 2: Baseline -->
+<div class="bg-surface-container-low rounded-xl p-space-md flex flex-col justify-between">
+<span class="font-label-sm text-label-sm text-secondary">Personal Baseline</span>
+<div class="flex items-baseline gap-space-2xs my-space-2xs">
+<span class="font-data-metric text-data-metric text-on-surface">41</span>
+<span class="font-body-sm text-body-sm text-secondary">/ 100</span>
+</div>
+<span class="font-label-sm text-label-sm text-secondary">Calibrated 30d</span>
+</div>
+<!-- Metric 3: Telemetry Trend -->
+<div class="bg-surface-container-low rounded-xl p-space-md flex flex-col justify-between">
+<span class="font-label-sm text-label-sm text-secondary">Telemetry Trend</span>
+<div class="my-space-2xs">
+<span class="font-headline-sm text-headline-sm text-error tracking-tight font-bold block">DETERIORATING</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Velocity: +0.75/hr</span>
+</div>
+<!-- Metric 4: Risk Level -->
+<div class="bg-error-container/30 rounded-xl p-space-md flex flex-col justify-between">
+<span class="font-label-sm text-label-sm text-on-error-container font-medium">Overall Risk</span>
+<div class="my-space-2xs">
+<span class="font-data-metric text-data-metric text-error">HIGH</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-error-container">Tier 1 Protocol</span>
+</div>
+</div>
+<div class="bg-surface-container-low rounded-lg p-space-sm flex items-start gap-space-sm">
+<span class="material-symbols-outlined text-surface-tint text-[20px] mt-0.5">info</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+<strong>Clinical Trajectory Note:</strong> Current distress exceeds personal baseline by <strong>+26 points</strong>. Rate of change (velocity) has increased sharply over the last 48 hours, crossing the designated safety review ceiling (60.0).
+          </p>
+</div>
+</div>
+<!-- 2. Longitudinal Well-being Telemetry Graph -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col gap-space-md">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm">
+<div class="flex items-center gap-space-xs bg-surface-container rounded-lg p-space-2xs">
+<button class="px-space-sm py-space-2xs rounded bg-surface-container-lowest font-label-sm text-label-sm text-primary font-semibold shadow-sm">
+              Distress Score
+            </button>
+<button class="px-space-sm py-space-2xs rounded font-label-sm text-label-sm text-on-surface-variant hover:text-on-surface transition-colors">
+              Risk Probability
+            </button>
+<button class="px-space-sm py-space-2xs rounded font-label-sm text-label-sm text-on-surface-variant hover:text-on-surface transition-colors">
+              Engagement &amp; Adherence
+            </button>
+</div>
+<div class="flex items-center gap-space-xs font-label-sm text-label-sm text-secondary">
+<span class="material-symbols-outlined text-[18px]">calendar_month</span>
+<span>Last 7 Check-ins (Oct 10 – Oct 24)</span>
+</div>
+</div>
+<!-- Inline SVG Visualization -->
+<div class="relative w-full overflow-hidden pt-space-sm">
+<div class="flex justify-between items-center text-xs font-data-mono text-outline pb-space-xs">
+<span class="flex items-center gap-1.5"><span class="w-3 h-0.5 bg-primary inline-block"></span> Distress Curve</span>
+<span class="flex items-center gap-1.5"><span class="w-3 h-0.5 bg-outline-variant border-t border-dashed border-outline inline-block"></span> Baseline (41)</span>
+<span class="flex items-center gap-1.5"><span class="w-3 h-0.5 bg-error inline-block"></span> Anomaly Alert Ceiling (60)</span>
+</div>
+<div class="w-full h-64 relative bg-surface-container-low/40 rounded-lg p-space-sm">
+<svg class="w-full h-full" fill="none" preserveaspectratio="none" viewbox="0 0 760 220">
+<defs>
+<lineargradient id="distressGradient" x1="0%" x2="0%" y1="0%" y2="100%">
+<stop offset="0%" stop-color="#ba1a1a" stop-opacity="0.35"></stop>
+<stop offset="45%" stop-color="#4f46e5" stop-opacity="0.2"></stop>
+<stop offset="100%" stop-color="#4f46e5" stop-opacity="0.0"></stop>
+</lineargradient>
+<lineargradient id="lineStroke" x1="0%" x2="100%" y1="0%" y2="0%">
+<stop offset="0%" stop-color="#3525cd"></stop>
+<stop offset="65%" stop-color="#4f46e5"></stop>
+<stop offset="90%" stop-color="#ba1a1a"></stop>
+</lineargradient>
+</defs>
+<!-- Grid Horizontal Reference Lines -->
+<line stroke="#dce9ff" stroke-width="1" x1="40" x2="740" y1="30" y2="30"></line>
+<text fill="#777587" font-family="Inter" font-size="10" x="15" y="34">80</text>
+<!-- Anomaly Line at 60 (y ~ 75) -->
+<line opacity="0.6" stroke="#ba1a1a" stroke-dasharray="4 4" stroke-width="1.5" x1="40" x2="740" y1="75" y2="75"></line>
+<text fill="#ba1a1a" font-family="Inter" font-size="10" font-weight="600" x="15" y="79">60</text>
+<!-- Baseline Reference Line at 41 (y ~ 118) -->
+<line opacity="0.8" stroke="#777587" stroke-dasharray="3 3" stroke-width="1.5" x1="40" x2="740" y1="118" y2="118"></line>
+<text fill="#464555" font-family="Inter" font-size="10" x="15" y="122">41</text>
+<line stroke="#dce9ff" stroke-width="1" x1="40" x2="740" y1="165" y2="165"></line>
+<text fill="#777587" font-family="Inter" font-size="10" x="15" y="169">20</text>
+<!-- Distress Shaded Area -->
+<path d="M 60,140 L 180,126 L 300,118 L 420,100 L 550,100 L 700,58 L 700,200 L 60,200 Z" fill="url(#distressGradient)"></path>
+<!-- Smooth Curve Line -->
+<path d="M 60,140 C 120,135 140,128 180,126 C 230,124 260,119 300,118 C 360,117 380,101 420,100 C 470,99 510,100 550,100 C 620,100 640,65 700,58" fill="none" stroke="url(#lineStroke)" stroke-linecap="round" stroke-width="3"></path>
+<!-- Point 1 (Oct 10: 31) -->
+<circle cx="60" cy="140" fill="#ffffff" r="4.5" stroke="#3525cd" stroke-width="2.5"></circle>
+<text fill="#464555" font-family="Inter" font-size="10" text-anchor="middle" x="60" y="158">31</text>
+<!-- Point 2 (Oct 13: 37) -->
+<circle cx="180" cy="126" fill="#ffffff" r="4.5" stroke="#3525cd" stroke-width="2.5"></circle>
+<text fill="#464555" font-family="Inter" font-size="10" text-anchor="middle" x="180" y="144">37</text>
+<!-- Point 3 (Oct 16: 41 - Baseline) -->
+<circle cx="300" cy="118" fill="#ffffff" r="4.5" stroke="#3525cd" stroke-width="2.5"></circle>
+<text fill="#464555" font-family="Inter" font-size="10" text-anchor="middle" x="300" y="136">41</text>
+<!-- Point 4 (Oct 19: 49) -->
+<circle cx="420" cy="100" fill="#ffffff" r="4.5" stroke="#4f46e5" stroke-width="2.5"></circle>
+<text fill="#464555" font-family="Inter" font-size="10" text-anchor="middle" x="420" y="90">49</text>
+<!-- Point 5 (Oct 23 Yesterday: 49) -->
+<circle cx="550" cy="100" fill="#ffffff" r="4.5" stroke="#4f46e5" stroke-width="2.5"></circle>
+<text fill="#464555" font-family="Inter" font-size="10" text-anchor="middle" x="550" y="90">49</text>
+<!-- Point 6 (Oct 24 Today 9:34 AM: 67) -->
+<circle cx="700" cy="58" fill="#ba1a1a" r="7" stroke="#ffffff" stroke-width="2"></circle>
+<circle cx="700" cy="58" fill="none" opacity="0.4" r="12" stroke="#ba1a1a" stroke-width="1.5"></circle>
+<!-- Anomaly Callout Card Inside SVG -->
+<g transform="translate(580, 18)">
+<rect fill="#0b1c30" height="30" opacity="0.95" rx="6" width="115"></rect>
+<text fill="#ffffff" font-family="Inter" font-size="9" text-anchor="middle" x="57" y="14">Today · 9:34 AM</text>
+<text fill="#ffdad6" font-family="Inter" font-size="10" font-weight="700" text-anchor="middle" x="57" y="24">67 (+18 Spike)</text>
+</g>
+<!-- X-Axis Labels -->
+<text fill="#777587" font-family="Inter" font-size="10" text-anchor="middle" x="60" y="215">Oct 10</text>
+<text fill="#777587" font-family="Inter" font-size="10" text-anchor="middle" x="180" y="215">Oct 13</text>
+<text fill="#777587" font-family="Inter" font-size="10" text-anchor="middle" x="300" y="215">Oct 16 (v3)</text>
+<text fill="#777587" font-family="Inter" font-size="10" text-anchor="middle" x="420" y="215">Oct 19</text>
+<text fill="#777587" font-family="Inter" font-size="10" text-anchor="middle" x="550" y="215">Oct 23 (v4)</text>
+<text fill="#ba1a1a" font-family="Inter" font-size="10" font-weight="700" text-anchor="middle" x="700" y="215">Oct 24 (v5)</text>
+</svg>
+</div>
+</div>
+</div>
+<!-- 3. Predictive Risk Assessment Station -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col gap-space-md">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="w-3 h-3 rounded-full bg-primary"></span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">Predictive Risk Assessment</h3>
+</div>
+<span class="px-space-sm py-space-2xs rounded-full bg-surface-container text-primary font-label-sm text-label-sm font-semibold">
+            VIORA Neuro-Acoustic &amp; Semantic Engine
+          </span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-sm">
+<div class="bg-surface-container-low rounded-xl p-space-md flex flex-col justify-between">
+<span class="font-label-sm text-label-sm text-secondary">Escalation Probability</span>
+<div class="flex items-baseline gap-space-2xs my-space-xs">
+<span class="font-data-metric text-data-metric text-error">72</span>
+<span class="font-body-sm text-body-sm text-secondary">/ 100</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">High likelihood of continued acute episode within 72h.</p>
+</div>
+<div class="bg-surface-container-low rounded-xl p-space-md flex flex-col justify-between">
+<span class="font-label-sm text-label-sm text-secondary">Trajectory Direction</span>
+<div class="my-space-xs flex items-center gap-space-xs text-error font-headline-sm text-headline-sm font-bold">
+<span class="material-symbols-outlined text-[24px]">north_east</span>
+<span>ESCALATING</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Acute multi-step divergence from established 30d median.</p>
+</div>
+<div class="bg-surface-container-low rounded-xl p-space-md flex flex-col justify-between">
+<span class="font-label-sm text-label-sm text-secondary">Supervision Level</span>
+<div class="my-space-xs">
+<span class="font-label-md text-label-md font-bold text-on-surface block leading-tight">
+                DIRECT CLINICIAN SUPERVISION
+              </span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Mandates immediate triage confirmation &amp; follow-up.</p>
+</div>
+</div>
+<div class="bg-surface-container-high/50 rounded-lg p-space-md flex items-start gap-space-sm">
+<span class="material-symbols-outlined text-primary text-[22px] shrink-0">psychology</span>
+<p class="font-body-md text-body-md text-on-surface">
+<strong>Neural Assessment Summary:</strong> Risk trajectory has detached from historical baseline mean. Voice acoustic jitter (6.4%) and semantic threat density index (0.84) confirm an active, uncontained acute trauma trigger requiring therapeutic stabilization.
+          </p>
+</div>
+</div>
+<!-- 4. Explainable AI: Why is the risk changing? -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col gap-space-md">
+<div>
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-surface-tint text-[22px]">auto_awesome</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Explainable AI — Clinical Attribution Factors</h3>
+</div>
+<p class="font-body-md text-body-md text-secondary mt-space-2xs">
+            Key drivers identified by the multi-modal transformer without clinical black-box ambiguity:
+          </p>
+</div>
+<div class="flex flex-col gap-space-xs">
+<!-- Factor 1 -->
+<div class="p-space-md rounded-xl bg-surface-container-low hover:bg-surface-container transition-colors flex items-start justify-between gap-space-md">
+<div class="flex items-start gap-space-md">
+<div class="w-8 h-8 rounded-lg bg-error-container text-on-error-container flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[18px]">trending_up</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface font-semibold">Distress Velocity Spike</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">
+                  +18 points above previous check-in; steep escalation over 24 hours.
+                </span>
+</div>
+</div>
+<span class="px-space-sm py-0.5 rounded-full bg-error-container text-on-error-container font-label-sm text-label-sm font-semibold shrink-0">
+              Severity: High
+            </span>
+</div>
+<!-- Factor 2 -->
+<div class="p-space-md rounded-xl bg-surface-container-low hover:bg-surface-container transition-colors flex items-start justify-between gap-space-md">
+<div class="flex items-start gap-space-md">
+<div class="w-8 h-8 rounded-lg bg-error text-on-error flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[18px]">graphic_eq</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface font-semibold">Vocal Fear Marker</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">
+                  Strong acoustic tension, micro-tremors, and trembling frequencies detected in voice check-in.
+                </span>
+</div>
+</div>
+<span class="px-space-sm py-0.5 rounded-full bg-error text-on-error font-label-sm text-label-sm font-semibold shrink-0">
+              Severity: Critical
+            </span>
+</div>
+<!-- Factor 3 -->
+<div class="p-space-md rounded-xl bg-surface-container-low hover:bg-surface-container transition-colors flex items-start justify-between gap-space-md">
+<div class="flex items-start gap-space-md">
+<div class="w-8 h-8 rounded-lg bg-surface-variant text-on-surface flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[18px]">bedtime</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface font-semibold">Severe Sleep Disruption</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">
+                  User explicitly reported 3 consecutive nights of insomnia and recurrent panic waking.
+                </span>
+</div>
+</div>
+<span class="px-space-sm py-0.5 rounded-full bg-surface-container-highest text-on-surface font-label-sm text-label-sm font-semibold shrink-0">
+              Severity: Moderate
+            </span>
+</div>
+<!-- Factor 4 -->
+<div class="p-space-md rounded-xl bg-surface-container-low hover:bg-surface-container transition-colors flex items-start justify-between gap-space-md">
+<div class="flex items-start gap-space-md">
+<div class="w-8 h-8 rounded-lg bg-error text-on-error flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[18px]">shield_with_heart</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface font-semibold">Safety Threat Indicator</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">
+                  Explicit language regarding external threat and complete perceived lack of personal safety at home.
+                </span>
+</div>
+</div>
+<span class="px-space-sm py-0.5 rounded-full bg-error text-on-error font-label-sm text-label-sm font-semibold shrink-0">
+              Severity: Critical
+            </span>
+</div>
+<!-- Factor 5 -->
+<div class="p-space-md rounded-xl bg-surface-container-low hover:bg-surface-container transition-colors flex items-start justify-between gap-space-md">
+<div class="flex items-start gap-space-md">
+<div class="w-8 h-8 rounded-lg bg-primary-container text-on-primary flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[18px]">adjust</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface font-semibold">Exceeds Personal Baseline</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">
+                  Current score is +26 points above patient's calibrated 30-day baseline (41.0).
+                </span>
+</div>
+</div>
+<span class="px-space-sm py-0.5 rounded-full bg-primary-container text-on-primary font-label-sm text-label-sm font-semibold shrink-0">
+              Severity: High
+            </span>
+</div>
+</div>
+</div>
+<!-- 5. Key Clinical Indicators Matrix -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Extracted Clinical Biomarkers &amp; Semantic Matrix</h3>
+<span class="font-data-mono text-data-mono text-on-surface-variant text-xs">8 Feature Vectors Analysed</span>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-space-sm">
+<!-- Distress -->
+<div class="flex items-center justify-between p-space-sm rounded-lg bg-surface-container-low">
+<span class="font-body-sm text-body-sm text-secondary">General Distress</span>
+<span class="px-2.5 py-0.5 rounded-full bg-error-container text-on-error-container font-label-sm text-label-sm font-semibold">
+              Strong
+            </span>
+</div>
+<!-- Fear & Anxiety -->
+<div class="flex items-center justify-between p-space-sm rounded-lg bg-surface-container-low">
+<span class="font-body-sm text-body-sm text-secondary">Fear &amp; Anxiety Intensity</span>
+<span class="px-2.5 py-0.5 rounded-full bg-error text-on-error font-label-sm text-label-sm font-semibold">
+              Strong
+            </span>
+</div>
+<!-- Safety Threat -->
+<div class="flex items-center justify-between p-space-sm rounded-lg bg-surface-container-low">
+<span class="font-body-sm text-body-sm text-secondary">Safety Threat Indicator</span>
+<span class="px-2.5 py-0.5 rounded-full bg-error text-on-error font-label-sm text-label-sm font-semibold">
+              Present
+            </span>
+</div>
+<!-- Sleep Quality -->
+<div class="flex items-center justify-between p-space-sm rounded-lg bg-surface-container-low">
+<span class="font-body-sm text-body-sm text-secondary">Sleep Quality &amp; Rhythm</span>
+<span class="px-2.5 py-0.5 rounded-full bg-surface-variant text-on-surface font-label-sm text-label-sm font-semibold">
+              Concern
+            </span>
+</div>
+<!-- Hopelessness -->
+<div class="flex items-center justify-between p-space-sm rounded-lg bg-surface-container-low">
+<span class="font-body-sm text-body-sm text-secondary">Hopelessness / Ideation</span>
+<span class="px-2.5 py-0.5 rounded-full bg-surface-container text-secondary font-label-sm text-label-sm font-semibold">
+              None Detected
+            </span>
+</div>
+<!-- Engagement -->
+<div class="flex items-center justify-between p-space-sm rounded-lg bg-surface-container-low">
+<span class="font-body-sm text-body-sm text-secondary">Interaction Engagement</span>
+<span class="px-2.5 py-0.5 rounded-full bg-surface-variant text-on-surface font-label-sm text-label-sm font-semibold">
+              Declining
+            </span>
+</div>
+<!-- Acoustic Sentiment -->
+<div class="flex items-center justify-between p-space-sm rounded-lg bg-surface-container-low">
+<span class="font-body-sm text-body-sm text-secondary">Acoustic Sentiment</span>
+<span class="px-2.5 py-0.5 rounded-full bg-error-container text-on-error-container font-label-sm text-label-sm font-semibold">
+              Negative
+            </span>
+</div>
+<!-- Cognitive Clarity -->
+<div class="flex items-center justify-between p-space-sm rounded-lg bg-surface-container-low">
+<span class="font-body-sm text-body-sm text-secondary">Cognitive Clarity</span>
+<span class="px-2.5 py-0.5 rounded-full bg-surface-container-high text-primary font-label-sm text-label-sm font-semibold">
+              Coherent
+            </span>
+</div>
+</div>
+</div>
+<!-- Historical Progress & Version Audit -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Longitudinal Report &amp; Version History</h3>
+<span class="font-body-sm text-body-sm text-secondary">Complete audit chain across all clinical ingest versions</span>
+</div>
+<span class="material-symbols-outlined text-outline">history</span>
+</div>
+<div class="flex flex-col gap-space-xs">
+<!-- v5 Active -->
+<div class="p-space-sm rounded-lg bg-surface-container-high/60 flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<span class="font-data-mono text-data-mono font-bold text-primary">v5</span>
+<span class="font-body-sm text-body-sm text-on-surface font-semibold">Today · 9:35 AM</span>
+<span class="text-secondary font-body-sm text-body-sm">Distress: <strong class="text-error">67</strong> | Risk: <strong class="text-error">High</strong></span>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-error text-on-error font-label-sm text-label-sm font-semibold">Deteriorating (Active)</span>
+</div>
+<!-- v4 -->
+<div class="p-space-sm rounded-lg bg-surface-container-low flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<span class="font-data-mono text-data-mono font-bold text-secondary">v4</span>
+<span class="font-body-sm text-body-sm text-on-surface">Yesterday · 7:00 PM</span>
+<span class="text-secondary font-body-sm text-body-sm">Distress: <strong>49</strong> | Risk: Moderate</span>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-surface-container-highest text-on-surface font-label-sm text-label-sm">Escalating</span>
+</div>
+<!-- v3 -->
+<div class="p-space-sm rounded-lg bg-surface-container-low flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<span class="font-data-mono text-data-mono font-bold text-secondary">v3</span>
+<span class="font-body-sm text-body-sm text-on-surface">3 days ago</span>
+<span class="text-secondary font-body-sm text-body-sm">Distress: <strong>41</strong> | Risk: Moderate</span>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-surface-container text-secondary font-label-sm text-label-sm">Stable Baseline</span>
+</div>
+<!-- v2 -->
+<div class="p-space-sm rounded-lg bg-surface-container-low flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<span class="font-data-mono text-data-mono font-bold text-secondary">v2</span>
+<span class="font-body-sm text-body-sm text-on-surface">1 week ago</span>
+<span class="text-secondary font-body-sm text-body-sm">Distress: <strong>37</strong> | Risk: Low</span>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-surface-container text-secondary font-label-sm text-label-sm">Improving</span>
+</div>
+<!-- v1 -->
+<div class="p-space-sm rounded-lg bg-surface-container-low flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<span class="font-data-mono text-data-mono font-bold text-secondary">v1</span>
+<span class="font-body-sm text-body-sm text-on-surface">2 weeks ago</span>
+<span class="text-secondary font-body-sm text-body-sm">Distress: <strong>31</strong> | Risk: Low</span>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-surface-container text-secondary font-label-sm text-label-sm">Baseline Established</span>
+</div>
+</div>
+</div>
+</div>
+<!-- RIGHT COLUMN (38% ~ 4.6 cols, spanned as 5 or 4 on 12-col grid) -->
+<div class="lg:col-span-5 xl:col-span-4 flex flex-col gap-space-lg">
+<!-- 6. Latest Interaction Summary & Interactive Transcript Viewer -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[20px]">mic</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Latest Interaction</h3>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-error-container text-on-error-container font-label-sm text-label-sm font-semibold">Voice Alert</span>
+</div>
+<div class="bg-surface-container-low rounded-lg p-space-sm flex flex-col gap-space-2xs text-on-surface-variant font-body-sm text-body-sm">
+<div class="flex items-center justify-between">
+<span>Duration: <strong>3m 42s</strong></span>
+<span>Language: <strong>Hindi / Hinglish</strong></span>
+</div>
+<div class="flex items-center justify-between">
+<span>Timestamp: Today · 9:34 AM</span>
+<span>NLP Confidence: <strong>98.2%</strong></span>
+</div>
+</div>
+<div class="p-space-sm rounded-lg bg-surface-container-high/40">
+<span class="font-label-sm text-label-sm text-secondary uppercase tracking-wider block">Clinical NLP Summary</span>
+<p class="font-body-sm text-body-sm text-on-surface mt-1">
+            User reported severe sleep disruption (3 nights insomnia), overwhelming panic symptoms, and explicit personal safety fears regarding her domestic environment.
+          </p>
+</div>
+<!-- Audio Snippet Visualizer -->
+<div class="p-space-sm rounded-lg bg-surface-container flex items-center gap-space-sm">
+<button class="w-9 h-9 rounded-full bg-primary text-on-primary flex items-center justify-center shrink-0 hover:bg-primary-container transition-colors" type="button">
+<span class="material-symbols-outlined text-[20px]">play_arrow</span>
+</button>
+<div class="flex-1 flex flex-col gap-1">
+<div class="flex items-center justify-between text-xs font-data-mono text-secondary">
+<span>01:14</span>
+<span>03:42</span>
+</div>
+<!-- Waveform Bar -->
+<div class="flex items-center gap-0.5 h-6">
+<span class="w-1 h-2 bg-primary rounded-full"></span>
+<span class="w-1 h-3 bg-primary rounded-full"></span>
+<span class="w-1 h-5 bg-primary rounded-full"></span>
+<span class="w-1 h-4 bg-primary rounded-full"></span>
+<span class="w-1 h-6 bg-primary rounded-full"></span>
+<span class="w-1 h-5 bg-primary rounded-full"></span>
+<span class="w-1 h-3 bg-primary rounded-full"></span>
+<span class="w-1 h-5 bg-primary rounded-full"></span>
+<span class="w-1 h-2 bg-outline-variant rounded-full"></span>
+<span class="w-1 h-4 bg-outline-variant rounded-full"></span>
+<span class="w-1 h-3 bg-outline-variant rounded-full"></span>
+<span class="w-1 h-5 bg-outline-variant rounded-full"></span>
+<span class="w-1 h-6 bg-outline-variant rounded-full"></span>
+<span class="w-1 h-4 bg-outline-variant rounded-full"></span>
+<span class="w-1 h-2 bg-outline-variant rounded-full"></span>
+<span class="w-1 h-5 bg-outline-variant rounded-full"></span>
+<span class="w-1 h-3 bg-outline-variant rounded-full"></span>
+<span class="w-1 h-2 bg-outline-variant rounded-full"></span>
+</div>
+</div>
+<button class="px-space-xs py-space-2xs rounded bg-surface-container-lowest font-data-mono text-data-mono text-xs text-on-surface" title="Playback speed" type="button">1.0x</button>
+</div>
+<!-- Bilingual Transcript Timeline Stream -->
+<div class="flex flex-col gap-space-sm max-h-80 overflow-y-auto pr-space-2xs">
+<!-- Dialogue 1: User -->
+<div class="flex flex-col gap-1 p-space-sm rounded-lg bg-surface-container-low">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-primary font-semibold">Ananya (Patient)</span>
+<span class="font-data-mono text-data-mono text-xs text-outline">09:34:12</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface italic">
+              "Main pichle do din se bilkul so nahi paayi hoon... bohot zyada panic ho raha hai."
+            </p>
+<span class="font-body-sm text-body-sm text-secondary text-xs">
+              [En: "I haven't been able to sleep at all for the past two days... feeling intense panic."]
+            </span>
+</div>
+<!-- Dialogue 2: VIORA AI -->
+<div class="flex flex-col gap-1 p-space-sm rounded-lg bg-surface-container">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-surface-tint font-semibold">VIORA Clinical AI</span>
+<span class="font-data-mono text-data-mono text-xs text-outline">09:34:25</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface italic">
+              "Main samajh sakti hoon Ananya. Kya koi aisi baat hui hai jisse aapko zyada dar ya tension feel ho rahi hai?"
+            </p>
+<span class="font-body-sm text-body-sm text-secondary text-xs">
+              [En: "I understand, Ananya. Has anything happened that is making you feel more fear or tension?"]
+            </span>
+</div>
+<!-- Dialogue 3: User (Trigger) -->
+<div class="flex flex-col gap-1 p-space-sm rounded-lg bg-error-container/30">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-error"></span>
+<span class="font-label-sm text-label-sm text-error font-semibold">Ananya (Threat Flagged)</span>
+</div>
+<span class="font-data-mono text-data-mono text-xs text-outline">09:34:40</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface font-medium italic">
+              "Ghar mein situation theek nahi hai... They threatened me again last night. Mujhe lagta hai main yahan safe nahi hoon."
+            </p>
+<span class="font-body-sm text-body-sm text-on-error-container text-xs">
+              [En: "Things aren't okay at home... They threatened me again last night. I feel I am not safe here."]
+            </span>
+</div>
+<!-- Dialogue 4: VIORA AI -->
+<div class="flex flex-col gap-1 p-space-sm rounded-lg bg-surface-container">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-surface-tint font-semibold">VIORA Clinical AI</span>
+<span class="font-data-mono text-data-mono text-xs text-outline">09:34:58</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface italic">
+              "Yeh sunkar mujhe aapki chinta ho rahi hai. Main turant aapke counsellor Dr. Sharma ko update bhej rahi hoon taaki woh aapse baat karein."
+            </p>
+<span class="font-body-sm text-body-sm text-secondary text-xs">
+              [En: "Hearing this makes me concerned for you. I am immediately alerting your counsellor Dr. Sharma so they can connect with you."]
+            </span>
+</div>
+</div>
+</div>
+<!-- 7. Recommended Next Step & Follow-up Panel -->
+<div class="bg-surface-container-high/50 rounded-xl p-space-lg shadow-sm flex flex-col gap-space-md">
+<div class="flex items-start gap-space-sm">
+<div class="w-8 h-8 rounded-lg bg-primary text-on-primary flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[20px]">notifications_active</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-bold">Recommended Next Step</h4>
+<span class="font-label-sm text-label-sm text-primary font-semibold block mt-0.5">Urgent Counsellor Review (Priority 1)</span>
+</div>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface">
+          Escalation risk is <strong>72/100</strong> with active safety threat indicator. Standard clinical guidance mandates direct clinician human outreach within <strong>4 hours</strong>.
+        </p>
+<div class="bg-surface-container-lowest rounded-lg p-space-md flex flex-col gap-space-2xs shadow-sm">
+<span class="font-label-sm text-label-sm text-secondary uppercase tracking-wider">Scheduled Follow-up Cadence</span>
+<div class="flex items-center justify-between mt-1">
+<div class="flex items-center gap-space-xs font-body-sm text-body-sm text-on-surface">
+<span class="material-symbols-outlined text-primary text-[18px]">event</span>
+<span>Tomorrow · 6:30 PM</span>
+</div>
+<span class="px-2 py-0.5 rounded bg-error-container text-on-error-container font-label-sm text-label-sm font-semibold">
+              Auto-suggest: 11:30 AM Today
+            </span>
+</div>
+<div class="flex items-center gap-space-xs font-body-sm text-body-sm text-secondary mt-1">
+<span class="material-symbols-outlined text-[18px]">support_agent</span>
+<span>Channel: Priority Tele-consultation / Secure Voice</span>
+</div>
+</div>
+<div class="flex items-center gap-space-xs">
+<button class="flex-1 py-space-xs px-space-sm rounded-lg bg-primary text-on-primary font-label-md text-label-md text-center hover:bg-primary-container transition-colors shadow-sm" type="button">
+            Accept &amp; Schedule (11:30 AM)
+          </button>
+<button class="py-space-xs px-space-sm rounded-lg bg-surface-container text-on-surface font-label-md text-label-md hover:bg-surface-container-high transition-colors" type="button">
+            Reschedule
+          </button>
+</div>
+</div>
+<!-- 8. Human Review Decision Station -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-md flex flex-col gap-space-md" id="decision-station">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="w-3 h-3 rounded-full bg-surface-tint"></span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">Human Review Decision Station</h3>
+</div>
+<span class="font-label-sm text-label-sm text-secondary">Dr. Sharma</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+          Sign-off on algorithmic evaluation and record mandatory clinical direction in accordance with medical compliance:
+        </p>
+<!-- Decision Radios -->
+<div class="flex flex-col gap-space-2xs">
+<span class="font-label-sm text-label-sm text-secondary uppercase tracking-wider">Clinical Determination</span>
+<label class="flex items-center gap-space-sm p-space-sm rounded-lg bg-surface-container-low hover:bg-surface-container cursor-pointer transition-colors">
+<input checked="" class="w-4 h-4 text-primary focus:ring-primary" name="clinical-decision" type="radio"/>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface font-semibold">Intervention Required</span>
+<span class="font-body-sm text-body-sm text-secondary">Direct outreach and modified safety care plan</span>
+</div>
+</label>
+<label class="flex items-center gap-space-sm p-space-sm rounded-lg bg-surface-container-low hover:bg-surface-container cursor-pointer transition-colors">
+<input class="w-4 h-4 text-primary focus:ring-primary" name="clinical-decision" type="radio"/>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface font-semibold">Continue Monitoring</span>
+<span class="font-body-sm text-body-sm text-secondary">Telemetry cadence stays standard; no crisis escalation</span>
+</div>
+</label>
+<label class="flex items-center gap-space-sm p-space-sm rounded-lg bg-surface-container-low hover:bg-surface-container cursor-pointer transition-colors">
+<input class="w-4 h-4 text-primary focus:ring-primary" name="clinical-decision" type="radio"/>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-error font-semibold">Escalate to Crisis Unit</span>
+<span class="font-body-sm text-body-sm text-secondary">Trigger emergency dispatch or inpatient hold</span>
+</div>
+</label>
+<label class="flex items-center gap-space-sm p-space-sm rounded-lg bg-surface-container-low hover:bg-surface-container cursor-pointer transition-colors">
+<input class="w-4 h-4 text-primary focus:ring-primary" name="clinical-decision" type="radio"/>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface font-semibold">Case Discharge</span>
+<span class="font-body-sm text-body-sm text-secondary">Release from active telemetry monitoring</span>
+</div>
+</label>
+</div>
+<!-- Action Items Checkboxes -->
+<div class="flex flex-col gap-space-2xs">
+<span class="font-label-sm text-label-sm text-secondary uppercase tracking-wider">Prescribed Action Bundle</span>
+<label class="flex items-center gap-space-xs font-body-sm text-body-sm text-on-surface cursor-pointer">
+<input checked="" class="rounded border-outline text-primary focus:ring-primary" type="checkbox"/>
+<span>Immediate Counselling Outreach (Within 4 hrs)</span>
+</label>
+<label class="flex items-center gap-space-xs font-body-sm text-body-sm text-on-surface cursor-pointer">
+<input checked="" class="rounded border-outline text-primary focus:ring-primary" type="checkbox"/>
+<span>Safety Protocol Verification &amp; Safe Contact Check</span>
+</label>
+<label class="flex items-center gap-space-xs font-body-sm text-body-sm text-on-surface cursor-pointer">
+<input class="rounded border-outline text-primary focus:ring-primary" type="checkbox"/>
+<span>Medical / Psychiatric Consultation Referral</span>
+</label>
+<label class="flex items-center gap-space-xs font-body-sm text-body-sm text-on-surface cursor-pointer">
+<input class="rounded border-outline text-primary focus:ring-primary" type="checkbox"/>
+<span>Legal / Social Domestic Support Referral</span>
+</label>
+</div>
+<!-- Clinical Notes Rich Text Area -->
+<div class="flex flex-col gap-space-2xs">
+<label class="font-label-sm text-label-sm text-secondary uppercase tracking-wider" for="review-notes">Clinical Notes &amp; Rationales</label>
+<textarea class="w-full p-space-sm bg-surface-container-low rounded-lg font-body-md text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary-container" id="review-notes" rows="3">Spoke with triage team. Reaching out to patient regarding safe environment and adjusting evening check-in cadence.</textarea>
+</div>
+<!-- Submit Clinical Decision Button -->
+<button class="w-full py-space-sm px-space-md rounded-lg bg-primary-container text-on-primary font-label-md text-label-md hover:bg-primary transition-all flex items-center justify-center gap-space-xs shadow-sm" onclick="this.innerHTML='&lt;span class=\'material-symbols-outlined text-[18px] animate-spin\'&gt;sync&lt;/span&gt; &lt;span&gt;Logging to EHR...&lt;/span&gt;'; setTimeout(() =&gt; { this.innerHTML='&lt;span class=\'material-symbols-outlined text-[18px]\'&gt;check_circle&lt;/span&gt; &lt;span&gt;Review Logged (ID #8812)&lt;/span&gt;'; this.className='w-full py-space-sm px-space-md rounded-lg bg-surface-container-high text-primary font-label-md text-label-md flex items-center justify-center gap-space-xs shadow-sm'; }, 900);" type="button">
+<span class="material-symbols-outlined text-[18px]">verified</span>
+<span>Submit Clinical Decision &amp; Log to EHR</span>
+</button>
+</div>
+<!-- Real-Time Chronological Event Log -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col gap-space-sm">
+<h4 class="font-label-sm text-label-sm text-secondary uppercase tracking-wider">Telemetry Ingestion Timeline</h4>
+<div class="flex flex-col gap-space-xs font-body-sm text-body-sm">
+<div class="flex items-center gap-space-xs">
+<span class="font-data-mono text-data-mono text-xs text-outline">09:34 AM</span>
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+<span class="text-on-surface">Voice check-in completed (3m 42s)</span>
+</div>
+<div class="flex items-center gap-space-xs">
+<span class="font-data-mono text-data-mono text-xs text-outline">09:35 AM</span>
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+<span class="text-on-surface">Acoustic &amp; NLP analysis generated report v5</span>
+</div>
+<div class="flex items-center gap-space-xs">
+<span class="font-data-mono text-data-mono text-xs text-outline">09:35 AM</span>
+<span class="w-1.5 h-1.5 rounded-full bg-error"></span>
+<span class="text-error font-semibold">Risk updated to HIGH (72/100)</span>
+</div>
+<div class="flex items-center gap-space-xs">
+<span class="font-data-mono text-data-mono text-xs text-outline">09:36 AM</span>
+<span class="w-1.5 h-1.5 rounded-full bg-error animate-ping"></span>
+<span class="text-on-error-container font-semibold">Urgent Human Review Flag triggered</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+  // Dynamic interaction handles
+  document.addEventListener('DOMContentLoaded', () => {
+    // Subtle auto-scroll check or UI feedback initialization if required
+    console.log('VIORA Case Workspace: UID 1001 initialized.');
+  });
+</script></main></div></body></html>

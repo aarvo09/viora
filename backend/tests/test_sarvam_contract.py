@@ -93,7 +93,7 @@ def test_the_configured_voice_is_female():
     A male voice on that call is not a cosmetic mistake, so the chosen speaker is
     pinned here rather than left to whatever the vendor defaults to.
     """
-    assert settings.SARVAM_TTS_SPEAKER == "anushka"
+    assert settings.SARVAM_TTS_SPEAKER == "priya"
 
 
 def test_speech_pace_is_natural():

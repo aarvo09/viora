@@ -19,6 +19,7 @@ import type {
   Report,
   ReviewRequest,
   ReviewResponse,
+  ScheduleCallRequest,
   TelemetryPoint,
   Transcript,
 } from './types'
@@ -133,9 +134,32 @@ const CASES: CaseListItem[] = [
     next_follow_up: daysAhead(11),
     open_alerts: 0,
   },
+  {
+    case_id: 4,
+    case_ref: 'CASE-2024-0315',
+    uid: 'VRA-3108',
+    display_name: 'Rahul Verma',
+    preferred_language: 'hi',
+    status: 'ACTIVE',
+    legal_stage: 'Witness protection support',
+    risk_level: 'LOW',
+    distress_score: 10.0,
+    threat_score: 27.0,
+    trend: 'STABLE',
+    direction: 'STABLE',
+    last_check_in: daysAgo(0),
+    next_follow_up: daysAhead(7),
+    open_alerts: 0,
+  },
 ]
 
 const TELEMETRY: Record<number, TelemetryPoint[]> = {
+  4: [
+    { report_version: 1, created_at: daysAgo(21), distress_score: 12.0, threat_score: 7.3, composite_score: 10.6, baseline_score: 12.0, risk_level: 'LOW', direction: 'INSUFFICIENT_DATA' },
+    { report_version: 2, created_at: daysAgo(10), distress_score: 7.8, threat_score: 0.0, composite_score: 5.5, baseline_score: 12.0, risk_level: 'LOW', direction: 'STABLE' },
+    { report_version: 3, created_at: daysAgo(2), distress_score: 3.4, threat_score: 0.0, composite_score: 2.4, baseline_score: 9.9, risk_level: 'LOW', direction: 'STABLE' },
+    { report_version: 4, created_at: daysAgo(0), distress_score: 10.0, threat_score: 27.0, composite_score: 15.1, baseline_score: 8.0, risk_level: 'LOW', direction: 'STABLE' },
+  ],
   3: [
     { report_version: 1, created_at: daysAgo(24), distress_score: 38.5, threat_score: 34.7, composite_score: 37.4, baseline_score: 38.5, risk_level: 'MODERATE', direction: 'INSUFFICIENT_DATA' },
     { report_version: 2, created_at: daysAgo(12), distress_score: 51.4, threat_score: 59.7, composite_score: 57.2, baseline_score: 38.5, risk_level: 'HIGH', direction: 'INSUFFICIENT_DATA' },
@@ -429,5 +453,52 @@ export const mockApi = {
       outcome: payload.outcome,
       decided_at: new Date().toISOString(),
       intervention_id: payload.intervention_type ? 1 : null,
+    }),
+
+  scheduleFollowUp: (_caseId: number, payload: ScheduleCallRequest): Promise<FollowUp> =>
+    wait({
+      id: Math.floor(Math.random() * 1000) + 10,
+      scheduled_for: payload.scheduled_for,
+      channel: payload.channel,
+      status: 'SCHEDULED',
+      reason: payload.reason || payload.note || 'Scheduled follow-up',
+      source: payload.follow_up_type || 'COUNSELLOR',
+      cadence_hours: null,
+      cadence_base_hours: null,
+      cadence_factors: [],
+      staff_note: payload.note || null,
+    }),
+
+  cancelFollowUp: (_caseId: number, followUpId: number): Promise<FollowUp> =>
+    wait({
+      id: followUpId,
+      scheduled_for: new Date().toISOString(),
+      channel: 'VOICE',
+      status: 'CANCELLED',
+      reason: 'Cancelled by counsellor',
+      source: 'COUNSELLOR',
+      cadence_hours: null,
+      cadence_base_hours: null,
+      cadence_factors: [],
+      staff_note: null,
+    }),
+
+  completeFollowUp: (_caseId: number, followUpId: number): Promise<FollowUp> =>
+    wait({
+      id: followUpId,
+      scheduled_for: new Date().toISOString(),
+      channel: 'VOICE',
+      status: 'COMPLETED',
+      reason: 'Completed by counsellor',
+      source: 'COUNSELLOR',
+      cadence_hours: null,
+      cadence_base_hours: null,
+      cadence_factors: [],
+      staff_note: null,
+    }),
+
+  synthesizeText: (text: string) =>
+    wait({
+      sentences: [{ index: 0, text }],
     }),
 }

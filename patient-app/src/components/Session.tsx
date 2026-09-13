@@ -25,6 +25,7 @@ import {
 import { api } from '../api/client'
 import type { TurnResponse } from '../api/types'
 import { colors, radius, shadow, space, type as typeScale } from '../theme'
+import { useInsets } from '../ui/insets'
 import { Helplines } from './Helplines'
 import { VoiceOrb, type OrbState } from './VoiceOrb'
 
@@ -50,6 +51,7 @@ export function Session({
    *  the flow can be shown with no backend and no phone. */
   onSwitchToVoice?: () => void
 }) {
+  const insets = useInsets()
   const [messages, setMessages] = useState<Msg[]>([])
   const [input, setInput] = useState('')
   const [busy, setBusy] = useState(false)
@@ -146,7 +148,16 @@ export function Session({
     orb === 'SPEAKING' ? 'बोल रही हूँ' : orb === 'LISTENING' ? 'आप बोलिए' : 'समझ रही हूँ'
 
   return (
-    <Animated.View style={[styles.screen, { opacity: fade }]}>
+    <Animated.View
+      style={[
+        styles.screen,
+        {
+          paddingTop: insets.top + space.sm,
+          paddingBottom: insets.bottom + space.sm,
+          opacity: fade,
+        },
+      ]}
+    >
       <View style={styles.header}>
         <Pressable onPress={onExit} hitSlop={16}>
           <Text style={styles.exit}>Exit</Text>

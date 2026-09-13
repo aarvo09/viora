@@ -17,8 +17,11 @@ import type {
   TurnResponse,
 } from './types'
 
-const BASE = (process.env.EXPO_PUBLIC_API_BASE_URL ?? 'http://localhost:8000').replace(/\/$/, '')
-const MODE = process.env.EXPO_PUBLIC_API_MODE ?? 'mock'
+import { Platform } from 'react-native'
+
+const DEFAULT_HOST = Platform.OS === 'android' ? 'http://10.0.2.2:8000' : 'http://localhost:8000'
+const BASE = (process.env.EXPO_PUBLIC_API_BASE_URL || (Platform.OS === 'android' ? 'http://127.0.0.1:8000' : 'http://localhost:8000')).replace(/\/$/, '')
+const MODE = process.env.EXPO_PUBLIC_API_MODE ?? 'http'
 
 export const MODE_IS_MOCK = MODE === 'mock'
 
@@ -44,7 +47,19 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
       headers: { 'Content-Type': 'application/json', ...(init.headers as Record<string, string>) },
     })
   } catch {
-    throw new ApiError(`Cannot reach the backend at ${BASE}`, 0)
+    // If 127.0.0.1 failed on Android emulator, try 10.0.2.2 fallback
+    if (Platform.OS === 'android' && BASE !== DEFAULT_HOST) {
+      try {
+        res = await fetch(`${DEFAULT_HOST}/api/v1${path}`, {
+          ...init,
+          headers: { 'Content-Type': 'application/json', ...(init.headers as Record<string, string>) },
+        })
+      } catch {
+        throw new ApiError(`Cannot reach the backend at ${BASE}`, 0)
+      }
+    } else {
+      throw new ApiError(`Cannot reach the backend at ${BASE}`, 0)
+    }
   }
   if (!res.ok) throw new ApiError(`Request failed (${res.status})`, res.status)
   if (res.status === 204) return undefined as T
@@ -60,7 +75,15 @@ async function upload<T>(path: string, form: FormData): Promise<T> {
   try {
     res = await fetch(`${BASE}/api/v1${path}`, { method: 'POST', body: form })
   } catch {
-    throw new ApiError(`Cannot reach the backend at ${BASE}`, 0)
+    if (Platform.OS === 'android' && BASE !== DEFAULT_HOST) {
+      try {
+        res = await fetch(`${DEFAULT_HOST}/api/v1${path}`, { method: 'POST', body: form })
+      } catch {
+        throw new ApiError(`Cannot reach the backend at ${BASE}`, 0)
+      }
+    } else {
+      throw new ApiError(`Cannot reach the backend at ${BASE}`, 0)
+    }
   }
   if (!res.ok) throw new ApiError(`Voice turn failed (${res.status})`, res.status)
   return (await res.json()) as T
@@ -72,6 +95,7 @@ const PROFILES: PatientProfile[] = [
   { uid: 'VRA-4821', display_name: 'Meera', preferred_language: 'hi', preferred_channel: 'TEXT', safe_contact_start: '10:00', safe_contact_end: '17:00' },
   { uid: 'VRA-7364', display_name: 'Sunita', preferred_language: 'hi', preferred_channel: 'TEXT', safe_contact_start: '11:00', safe_contact_end: '16:00' },
   { uid: 'VRA-2915', display_name: 'Kavita', preferred_language: 'hi', preferred_channel: 'TEXT', safe_contact_start: '09:00', safe_contact_end: '13:00' },
+  { uid: 'VRA-5192', display_name: 'Rahul', preferred_language: 'hi', preferred_channel: 'VOICE', safe_contact_start: '10:00', safe_contact_end: '18:00' },
 ]
 
 function wellbeing(uid: string): PatientWellbeing {

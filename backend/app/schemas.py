@@ -157,6 +157,15 @@ class AudioSentence(BaseModel):
     audio_b64: Optional[str] = None
 
 
+class SynthesizeRequest(BaseModel):
+    text: str
+    language: Optional[str] = "hi"
+
+
+class SynthesizeResponse(BaseModel):
+    sentences: list[AudioSentence] = Field(default_factory=list)
+
+
 class TurnResponse(BaseModel):
     interaction_id: int
     seq: int
@@ -266,11 +275,13 @@ class FollowUpOut(ORMModel):
 
 
 class ScheduleCallRequest(BaseModel):
-    """Counsellor sets the time for the next AI check-in, overriding the prediction."""
+    """Counsellor sets the time for the next check-in (AI or Counsellor)."""
 
     scheduled_for: datetime
     channel: Literal["VOICE", "TEXT"] = "VOICE"
     note: Optional[str] = Field(default=None, max_length=500)
+    follow_up_type: Optional[Literal["COUNSELLOR", "AI"]] = None
+    reason: Optional[str] = Field(default=None, max_length=255)
 
 
 class DueCallResponse(BaseModel):

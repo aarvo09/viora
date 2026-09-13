@@ -217,6 +217,57 @@ KAVITA_HISTORY = [
     ),
 ]
 
+RAHUL_HISTORY = [
+    (
+        21,
+        _signals(
+            distress={"anxiety_fear": 0.6, "sleep_disturbance": 0.5},
+            threat={"intimidation_pressure": 0.5},
+            summary="Reports persistent worry about attending college and intimidation by peers trying to deter his witness testimony. Difficulty sleeping.",
+            turns=4,
+            avg_chars=95.0,
+        ),
+        [
+            ("VIORA", "नमस्ते राहुल। आप कैसा महसूस कर रहे हैं आजकल?"),
+            ("USER", "बहुत तनाव रहता है। कॉलेज जाने में डर लगता है।"),
+            ("VIORA", "कॉलेज में डर लगना सच में बहुत मुश्किल हो सकता है। क्या किसी ने आपको डराने की कोशिश की?"),
+            ("USER", "हाँ, कुछ लड़के धमकी दे रहे थे कि बयान मत देना।"),
+        ],
+    ),
+    (
+        10,
+        _signals(
+            distress={"anxiety_fear": 0.4, "sleep_disturbance": 0.4},
+            protective={"family_support": 0.6},
+            summary="Reports feeling more secure walking with his elder brother. Sleep still disrupted occasionally, but anxiety has begun easing.",
+            turns=4,
+            avg_chars=90.0,
+        ),
+        [
+            ("VIORA", "नमस्ते राहुल। पिछली बार आपने कॉलेज की परेशानी बताई थी। अब कैसा है?"),
+            ("USER", "भैया साथ जाते हैं तो थोड़ा ठीक लगता है। पर रात को नींद नहीं आती।"),
+            ("VIORA", "यह अच्छी बात है कि भैया साथ हैं। नींद न आने पर क्या आप कुछ देर टहलते हैं या शांत बैठते हैं?"),
+            ("USER", "हाँ, थोड़ी देर छत पर टहलता हूँ, फिर थोड़ा आराम मिलता है।"),
+        ],
+    ),
+    (
+        2,
+        _signals(
+            distress={"anxiety_fear": 0.3},
+            protective={"family_support": 0.7, "community_support": 0.5, "legal_progress": 0.5},
+            summary="Reports feeling substantially better after speaking with his counsellor and college administration. Routine normalizing.",
+            turns=4,
+            avg_chars=85.0,
+        ),
+        [
+            ("VIORA", "नमस्ते राहुल। इस हफ्ते कैसा बीता आपका?"),
+            ("USER", "पहले से बहुत बेहतर हूँ। काउंसलर सर से बात हुई और कॉलेज में भी सुरक्षा है।"),
+            ("VIORA", "यह सुनकर बहुत सुकून मिला। क्या अभी कोई नई चिंता या डर है?"),
+            ("USER", "नहीं, अब सब ठीक लग रहा है। पढ़ाई पर ध्यान दे पा रहा हूँ।"),
+        ],
+    ),
+]
+
 PEOPLE = [
     {
         "uid": "VRA-4821", "name": "Meera Devi", "language": "hi", "channel": "TEXT",
@@ -233,6 +284,11 @@ PEOPLE = [
         "case_ref": "CASE-2024-0288", "stage": "FIR registered",
         "safe": ("09:00", "13:00"), "history": KAVITA_HISTORY,
     },
+    {
+        "uid": "VRA-3108", "name": "Rahul Verma", "language": "hi", "channel": "VOICE",
+        "case_ref": "CASE-2024-0315", "stage": "Witness protection support",
+        "safe": ("09:00", "18:00"), "history": RAHUL_HISTORY,
+    },
 ]
 
 
@@ -240,20 +296,21 @@ def seed() -> None:
     init_db()
     db = SessionLocal()
     try:
-        if db.scalars(select(User)).first() is not None:
-            logger.info("Database already seeded — nothing to do.")
-            return
-
-        staff = StaffUser(
-            name="A. Sharma",
-            email=STAFF_EMAIL,
-            password_hash=hash_password(STAFF_PASSWORD),
-            role="DSWO",
-        )
-        db.add(staff)
-        db.flush()
+        staff = db.scalars(select(StaffUser)).first()
+        if staff is None:
+            staff = StaffUser(
+                name="A. Sharma",
+                email=STAFF_EMAIL,
+                password_hash=hash_password(STAFF_PASSWORD),
+                role="DSWO",
+            )
+            db.add(staff)
+            db.flush()
 
         for person in PEOPLE:
+            existing = db.scalars(select(User).where(User.uid == person["uid"])).first()
+            if existing is not None:
+                continue
             user = User(
                 uid=person["uid"],
                 display_name=person["name"],

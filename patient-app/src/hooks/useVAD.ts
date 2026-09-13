@@ -41,7 +41,7 @@ export const ATTACK_DB = 6
 export const POLL_MS = 80
 /** A turn is cut off here even if the person is still speaking, so a stuck
  *  recorder or a hot mic can never hold the call open indefinitely. */
-export const MAX_TURN_MS = 45000
+export const MAX_TURN_MS = 25000
 
 /* -- Turn-ending when the platform reports no metering -------------------- *
 
@@ -70,7 +70,7 @@ export const NO_METERING_MS = 600
 /** How long a duration-mode window records before closing on its own. Long
  *  enough for a full answer, short enough that a person who has finished is not
  *  left talking to a screen that seems to have stopped caring. */
-export const FALLBACK_TURN_MS = 7000
+export const FALLBACK_TURN_MS = 6000
 
 /** How a listening window decided when to stop.
  *  `VAD` — real metering drove it. `DURATION` — no metering; closed on time or
@@ -118,9 +118,9 @@ export class VoiceActivityDetector {
   private speechSamples = 0
   private silenceSamples = 0
   private inSpeech = false
-  private readonly speechTarget = Math.round(SPEECH_MS / POLL_MS)
-  private readonly silenceTarget = Math.round(SILENCE_MS / POLL_MS)
-  private readonly calibTarget = Math.round(NOISE_FLOOR_MS / POLL_MS)
+  private readonly speechTarget = Math.max(1, Math.round(SPEECH_MS / POLL_MS))
+  private readonly silenceTarget = Math.max(1, Math.round(SILENCE_MS / POLL_MS))
+  private readonly calibTarget = Math.max(1, Math.round(NOISE_FLOOR_MS / POLL_MS))
 
   /** Feed one metering sample in dBFS (negative). Returns what it means:
    *  'speech' the moment a turn opens, 'end' once silence has been sustained
@@ -291,8 +291,12 @@ export async function listenForTurn(
         const verdict = vad.update(db)
         onLevel?.(db, vad.noiseFloor)
         if (verdict === 'speech') onSpeechStart?.()
-        if (verdict === 'end') {
+        if (done?.tapped || verdict === 'end') {
           outcome = 'speech'
+          break
+        }
+        if (!vad.heardSpeech && elapsed >= 5000) {
+          outcome = 'silence'
           break
         }
       } else if (elapsed >= NO_METERING_MS) {

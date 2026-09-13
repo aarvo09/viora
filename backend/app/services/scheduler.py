@@ -176,16 +176,14 @@ def schedule_manual(
     staff_id: int,
     note: str | None = None,
     now: datetime | None = None,
+    follow_up_type: str = "COUNSELLOR",
+    reason: str | None = None,
 ) -> FollowUp:
-    """A counsellor sets the time for the next AI call, overriding the prediction.
+    """A counsellor sets the time for the next check-in (AI or Counsellor).
 
-    Contract §6 gives the AI the recommendation and the human the decision; this
-    is that decision for scheduling. The predicted row is CANCELLED rather than
-    deleted, so the audit trail keeps both what was predicted and what a person
-    chose instead.
-
-    `source='COUNSELLOR'` is what stops a later prediction from quietly
-    overwriting this: nothing in the pipeline replaces a human-set date.
+    Contract §6 gives the AI the recommendation and the human the decision. The
+    predicted follow-up is CANCELLED rather than deleted, so the audit trail keeps
+    both what was predicted and what a person chose instead.
     """
     now = now or datetime.now(timezone.utc)
 
@@ -199,14 +197,18 @@ def schedule_manual(
         row.status = "CANCELLED"
         _event(db, row, previous, "CANCELLED")
 
+    source = "AI" if (follow_up_type or "").upper() == "AI" else "COUNSELLOR"
+    default_reason = "Scheduled AI follow-up" if source == "AI" else "Scheduled by counsellor"
+    actual_reason = reason.strip() if reason and reason.strip() else default_reason
+
     manual = FollowUp(
         case_id=case_id,
         scheduled_for=scheduled_for,
         channel=channel,
         status="SCHEDULED",
-        reason="Scheduled by counsellor",
+        reason=actual_reason,
         policy_version="manual",
-        source="COUNSELLOR",
+        source=source,
         scheduled_by_staff_id=staff_id,
         staff_note=note,
         created_at=now,
@@ -218,8 +220,8 @@ def schedule_manual(
     db.refresh(manual)
 
     logger.info(
-        "manual follow-up scheduled case=%s follow_up=%s staff=%s superseded=%s",
-        case_id, manual.id, staff_id, len(superseded),
+        "%s follow-up scheduled case=%s follow_up=%s staff=%s superseded=%s",
+        source, case_id, manual.id, staff_id, len(superseded),
     )
     return manual
 

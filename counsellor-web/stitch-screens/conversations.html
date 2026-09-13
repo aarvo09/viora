@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Plus+Jakarta+Sans:wght@600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"on-tertiary-fixed-variant":"#2f2ebe","surface-tint":"#4d44e3","on-background":"#0b1c30","surface-variant":"#d3e4fe","on-primary-container":"#dad7ff","on-primary":"#ffffff","surface-bright":"#f8f9ff","surface-container-highest":"#d3e4fe","error":"#ba1a1a","inverse-primary":"#c3c0ff","surface-container-lowest":"#ffffff","on-error-container":"#93000a","surface-container-high":"#dce9ff","surface-container":"#e5eeff","secondary-container":"#dae2fd","on-tertiary":"#ffffff","background":"#f8f9ff","tertiary-fixed":"#e1e0ff","tertiary-fixed-dim":"#c0c1ff","on-secondary":"#ffffff","surface":"#f8f9ff","primary":"#3525cd","primary-fixed":"#e2dfff","tertiary-container":"#4b4dd8","on-secondary-fixed-variant":"#3f465c","surface-dim":"#cbdbf5","error-container":"#ffdad6","on-surface":"#0b1c30","outline":"#777587","primary-fixed-dim":"#c3c0ff","on-error":"#ffffff","on-surface-variant":"#464555","outline-variant":"#c7c4d8","primary-container":"#4f46e5","tertiary":"#3130c0","inverse-surface":"#213145","surface-container-low":"#eff4ff","on-secondary-fixed":"#131b2e","on-secondary-container":"#5c647a","secondary":"#565e74","inverse-on-surface":"#eaf1ff","secondary-fixed":"#dae2fd","on-primary-fixed":"#0f0069","on-tertiary-container":"#d9d8ff","on-tertiary-fixed":"#07006c","on-primary-fixed-variant":"#3323cc","secondary-fixed-dim":"#bec6e0"},borderRadius:{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},spacing:{"space-base":"1.0rem","space-2xl":"3.0rem","space-lg":"1.5rem","panel-max-width":"90rem","space-xl":"2.0rem","space-sm":"0.5rem","space-xs":"0.25rem","gutter":"1.25rem","space-2xs":"0.125rem","space-md":"0.75rem","sidebar-width":"17.5rem"},fontFamily:{"body-sm":["Inter"],"data-metric":["Plus Jakarta Sans"],"label-sm":["Inter"],"data-mono":["Inter"],"headline-lg":["Plus Jakarta Sans"],"display-lg":["Plus Jakarta Sans"],"body-md":["Inter"],"headline-xl":["Plus Jakarta Sans"],"headline-sm":["Plus Jakarta Sans"],"label-md":["Inter"],"body-lg":["Inter"]},fontSize:{"body-sm":["0.75rem",{"lineHeight":"1.125rem","fontWeight":"400"}],"data-metric":["1.5rem",{"lineHeight":"1.75rem","letterSpacing":"-0.02em","fontWeight":"700"}],"label-sm":["0.75rem",{"lineHeight":"1.0rem","letterSpacing":"0.025em","fontWeight":"600"}],"data-mono":["0.8125rem",{"lineHeight":"1.25rem","fontWeight":"500"}],"headline-lg":["1.25rem",{"lineHeight":"1.75rem","letterSpacing":"-0.015em","fontWeight":"600"}],"display-lg":["2.25rem",{"lineHeight":"2.75rem","letterSpacing":"-0.025em","fontWeight":"700"}],"body-md":["0.875rem",{"lineHeight":"1.375rem","fontWeight":"400"}],"headline-xl":["1.75rem",{"lineHeight":"2.25rem","letterSpacing":"-0.02em","fontWeight":"700"}],"headline-sm":["1.0rem",{"lineHeight":"1.5rem","letterSpacing":"-0.01em","fontWeight":"600"}],"label-md":["0.875rem",{"lineHeight":"1.25rem","fontWeight":"500"}],"body-lg":["1.0rem",{"lineHeight":"1.625rem","fontWeight":"400"}]}}}};</script></head><body class="bg-background font-body-md text-on-surface antialiased"><aside class="fixed left-0 top-0 h-full w-sidebar-width bg-inverse-surface z-50 flex flex-col justify-between shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex flex-col"><div class="px-space-lg pt-space-lg pb-space-md"><div class="flex items-center gap-space-sm"><div class="w-8 h-8 rounded-lg bg-primary-container flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[20px]">psychology</span></div><div><span class="font-headline-lg text-headline-lg text-inverse-on-surface tracking-tight block">VIORA</span><span class="font-label-sm text-label-sm text-surface-dim font-medium tracking-wide uppercase block">Clinical Decision Support</span></div></div></div><nav class="flex flex-col gap-space-2xs px-space-sm mt-space-md" data-active-classes="bg-primary-container text-on-primary font-semibold"><a class="flex items-center justify-between px-space-md py-space-sm rounded-lg font-label-md text-label-md text-inverse-on-surface/80 hover:bg-surface-variant/20 hover:text-inverse-on-surface transition-colors" data-path="dashboard" href="#"><div class="flex items-center gap-space-md"><span class="material-symbols-outlined text-[20px]">space_dashboard</span><span>Dashboard</span></div></a><a aria-current="page" class="flex items-center justify-between px-space-md py-space-sm rounded-lg transition-colors bg-primary-container text-on-primary font-semibold" data-path="cases" href="#"><div class="flex items-center gap-space-md"><span class="material-symbols-outlined text-[20px]">folder_shared</span><span>Cases</span></div><span class="font-label-sm text-label-sm px-space-sm py-space-2xs rounded-full bg-secondary text-inverse-on-surface">18</span></a><a class="flex items-center justify-between px-space-md py-space-sm rounded-lg font-label-md text-label-md text-inverse-on-surface/80 hover:bg-surface-variant/20 hover:text-inverse-on-surface transition-colors" data-path="alerts" href="#"><div class="flex items-center gap-space-md"><span class="material-symbols-outlined text-[20px]">warning</span><span>Alerts</span></div><span class="font-label-sm text-label-sm px-space-sm py-space-2xs rounded-full bg-error text-on-error">3</span></a><a class="flex items-center justify-between px-space-md py-space-sm rounded-lg font-label-md text-label-md text-inverse-on-surface/80 hover:bg-surface-variant/20 hover:text-inverse-on-surface transition-colors" data-path="conversations" href="#"><div class="flex items-center gap-space-md"><span class="material-symbols-outlined text-[20px]">forum</span><span>Conversations</span></div></a><a class="flex items-center justify-between px-space-md py-space-sm rounded-lg font-label-md text-label-md text-inverse-on-surface/80 hover:bg-surface-variant/20 hover:text-inverse-on-surface transition-colors" data-path="follow-ups" href="#"><div class="flex items-center gap-space-md"><span class="material-symbols-outlined text-[20px]">event_upcoming</span><span>Follow-ups</span></div><span class="font-label-sm text-label-sm px-space-sm py-space-2xs rounded-full bg-surface-variant/30 text-inverse-on-surface">5</span></a><a class="flex items-center justify-between px-space-md py-space-sm rounded-lg font-label-md text-label-md text-inverse-on-surface/80 hover:bg-surface-variant/20 hover:text-inverse-on-surface transition-colors" data-path="reports" href="#"><div class="flex items-center gap-space-md"><span class="material-symbols-outlined text-[20px]">description</span><span>Reports</span></div></a><a class="flex items-center justify-between px-space-md py-space-sm rounded-lg font-label-md text-label-md text-inverse-on-surface/80 hover:bg-surface-variant/20 hover:text-inverse-on-surface transition-colors" data-path="analytics" href="#"><div class="flex items-center gap-space-md"><span class="material-symbols-outlined text-[20px]">insights</span><span>Analytics</span></div></a><a class="flex items-center justify-between px-space-md py-space-sm rounded-lg font-label-md text-label-md text-inverse-on-surface/80 hover:bg-surface-variant/20 hover:text-inverse-on-surface transition-colors" data-path="settings" href="#"><div class="flex items-center gap-space-md"><span class="material-symbols-outlined text-[20px]">settings</span><span>Settings</span></div></a></nav></div><div class="p-space-md m-space-sm bg-surface-variant/10 rounded-xl"><div class="flex items-center gap-space-md"><div class="relative"><div class="w-9 h-9 rounded-full bg-primary-container text-on-primary font-headline-sm text-headline-sm flex items-center justify-center">DS</div><span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-secondary ring-2 ring-inverse-surface"></span></div><div class="flex-1 min-w-0"><div class="flex items-center justify-between"><span class="font-label-md text-label-md text-inverse-on-surface truncate block">Dr. Sharma</span></div><span class="font-body-sm text-body-sm text-surface-dim truncate block">Senior Clinical Counsellor</span><div class="flex items-center gap-space-xs mt-space-2xs"><span class="w-1.5 h-1.5 rounded-full bg-surface-dim"></span><span class="font-label-sm text-label-sm text-inverse-on-surface/70">On Duty</span></div></div></div></div></aside><div class="pl-sidebar-width min-h-screen flex flex-col bg-background"><header class="fixed top-0 left-sidebar-width right-0 h-16 bg-surface/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 px-space-xl flex items-center justify-between"><div class="w-full max-w-lg relative flex items-center"><span class="material-symbols-outlined absolute left-space-md text-on-surface-variant text-[20px]">search</span><input class="w-full pl-10 pr-14 py-space-xs bg-surface-container-lowest rounded-lg font-body-md text-body-md text-on-surface placeholder:text-outline focus:outline-none" placeholder="Search cases by patient name, UID, or condition..." type="text"/><span class="absolute right-space-sm font-data-mono text-data-mono text-on-surface-variant bg-surface-container px-space-xs py-space-2xs rounded">⌘K</span></div><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-xs px-space-md py-space-xs rounded-full bg-surface-container"><span class="w-2 h-2 rounded-full bg-primary-container"></span><span class="font-label-sm text-label-sm text-on-surface font-medium">Live Telemetry Active</span></div><button class="relative p-space-xs rounded-lg bg-surface-container-low text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" type="button"><span class="material-symbols-outlined text-[22px]">notifications</span><span class="absolute top-1 right-1 w-2 h-2 bg-error rounded-full"></span></button><button class="flex items-center gap-space-xs px-space-md py-space-xs rounded-lg bg-primary-container text-on-primary font-label-md text-label-md hover:bg-primary transition-colors shadow-[0_1px_8px_rgba(0,0,0,0.04)]" type="button"><span class="material-symbols-outlined text-[18px]">add</span><span>New Referral / Case</span></button><div class="flex items-center gap-space-sm pl-space-xs"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="w-full pt-16 px-space-xl pb-space-2xl"><div class="flex flex-col w-full">
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const convLink = document.querySelector('aside nav a[data-path="conversations"]');
+      if (convLink) {
+        document.querySelectorAll('aside nav a').forEach(el => {
+          el.classList.remove('bg-primary-container', 'text-on-primary', 'font-semibold');
+          el.classList.add('text-inverse-on-surface/80');
+        });
+        convLink.classList.add('bg-primary-container', 'text-on-primary', 'font-semibold');
+        convLink.classList.remove('text-inverse-on-surface/80');
+      }
+    });
+  </script>
+<!-- Context Header & Telemetry Filter Bar -->
+<div class="flex flex-col gap-space-md mb-space-lg">
+<div class="flex flex-wrap items-center justify-between gap-space-md">
+<div>
+<div class="flex items-center gap-space-xs text-on-surface-variant font-label-sm text-label-sm mb-space-2xs uppercase tracking-wider">
+<span>Telemetry Stream</span>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+<span class="text-primary font-medium">Synchronized Real-Time Ingestion</span>
+</div>
+<h1 class="font-headline-xl text-headline-xl text-on-surface">Patient Conversations &amp; Telemetry Transcripts</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Recent AI voice and text check-ins across active cohort</p>
+</div>
+<!-- Live Pipeline Stats / Clinical Status Strip -->
+<div class="flex items-center gap-space-sm">
+<div class="flex items-center gap-space-md px-space-md py-space-xs bg-surface-container-lowest rounded-xl shadow-sm">
+<div class="flex items-center gap-space-xs font-label-sm text-label-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-primary text-[18px]">graphic_eq</span>
+<span>NLP Pipeline v4.2</span>
+</div>
+<span class="w-px h-3 bg-surface-variant"></span>
+<div class="flex items-center gap-space-xs font-label-sm text-label-sm text-error">
+<span class="w-2 h-2 rounded-full bg-error animate-pulse"></span>
+<span class="font-semibold">2 Critical Alerts</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Filter & Search Bar -->
+<div class="flex flex-wrap items-center justify-between gap-space-md bg-surface-container-lowest p-space-xs rounded-xl shadow-sm">
+<div class="flex items-center gap-space-xs overflow-x-auto">
+<button class="px-space-md py-space-xs rounded-lg font-label-md text-label-md bg-primary-container text-on-primary shadow-sm transition-colors" type="button">
+          All <span class="ml-space-2xs opacity-80">(28)</span>
+</button>
+<button class="px-space-md py-space-xs rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container transition-colors" type="button">
+          Voice Calls <span class="ml-space-2xs opacity-80">(18)</span>
+</button>
+<button class="px-space-md py-space-xs rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container transition-colors" type="button">
+          Text Check-ins <span class="ml-space-2xs opacity-80">(10)</span>
+</button>
+<button class="flex items-center gap-space-xs px-space-md py-space-xs rounded-lg font-label-md text-label-md text-error hover:bg-error-container/40 transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px]">crisis_alert</span>
+          Flagged Safety <span class="px-space-xs py-0.5 rounded-full bg-error text-on-error font-data-mono text-[10px] leading-tight">2</span>
+</button>
+</div>
+<div class="relative min-w-[280px]">
+<span class="material-symbols-outlined absolute left-space-sm top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span>
+<input class="w-full pl-9 pr-space-md py-space-xs bg-surface-container-low rounded-lg font-body-sm text-body-sm text-on-surface placeholder:text-outline focus:outline-none focus:bg-surface-container-lowest transition-colors" placeholder="Search transcript text, keywords, or patient..." type="text"/>
+</div>
+</div>
+</div>
+<!-- Main Dual-Panel Workspace -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-start">
+<!-- Left Column: Patient Intake / Transcripts Feed (~380px nominal in 12-col) -->
+<div class="lg:col-span-4 flex flex-col gap-space-sm">
+<div class="flex items-center justify-between px-space-xs text-on-surface-variant">
+<span class="font-label-sm text-label-sm uppercase tracking-wide">Queue Sorted by Distress Index</span>
+<span class="font-data-mono text-[11px]">Sync: 12s ago</span>
+</div>
+<!-- Item 1: Active Selected Patient (Ananya Sharma) -->
+<div class="relative p-space-md rounded-xl bg-surface-container-lowest shadow-md transition-all cursor-pointer">
+<div class="absolute left-0 top-3 bottom-3 w-1 bg-primary rounded-r"></div>
+<div class="flex items-start justify-between gap-space-sm mb-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[20px]">mic</span>
+<h2 class="font-headline-sm text-headline-sm text-on-surface truncate">Ananya Sharma</h2>
+<span class="font-data-mono text-body-sm text-on-surface-variant">#1001</span>
+</div>
+<span class="px-space-xs py-space-2xs rounded-full bg-error-container text-on-error-container font-label-sm text-[11px] font-bold tracking-tight">FLAGGED</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface line-clamp-2 mb-space-sm">
+          "Main pichle teen din se bilkul so nahi pa rahi hoon... I just keep pacing around the room and my chest feels so heavy."
+        </p>
+<div class="flex items-center justify-between pt-space-xs bg-surface-container-low/50 px-space-sm py-space-xs rounded-lg">
+<div class="flex items-center gap-space-sm font-label-sm text-[11px] text-on-surface-variant">
+<span>Voice (3m 42s)</span>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+<span>Today, 9:34 AM</span>
+</div>
+<div class="flex items-center gap-space-xs">
+<span class="font-label-sm text-[11px] text-on-surface-variant">Distress</span>
+<span class="font-headline-sm text-headline-sm text-error font-bold">67</span>
+</div>
+</div>
+</div>
+<!-- Item 2: Rahul Verma -->
+<div class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm hover:shadow-md transition-all cursor-pointer">
+<div class="flex items-start justify-between gap-space-sm mb-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-on-surface-variant text-[20px]">chat_bubble_outline</span>
+<h2 class="font-headline-sm text-headline-sm text-on-surface truncate">Rahul Verma</h2>
+<span class="font-data-mono text-body-sm text-on-surface-variant">#1002</span>
+</div>
+<span class="px-space-xs py-space-2xs rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-[11px]">In Review</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2 mb-space-sm">
+          "Took the modified dose yesterday at 10 PM. Woke up with dry mouth and mild restlessness."
+        </p>
+<div class="flex items-center justify-between pt-space-xs bg-surface-container-low/30 px-space-sm py-space-xs rounded-lg">
+<div class="flex items-center gap-space-sm font-label-sm text-[11px] text-on-surface-variant">
+<span>Text Check-in</span>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+<span>Today, 8:15 AM</span>
+</div>
+<div class="flex items-center gap-space-xs">
+<span class="font-label-sm text-[11px] text-on-surface-variant">Distress</span>
+<span class="font-headline-sm text-headline-sm text-on-surface font-semibold">49</span>
+</div>
+</div>
+</div>
+<!-- Item 3: Kabir Mehta -->
+<div class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm hover:shadow-md transition-all cursor-pointer">
+<div class="flex items-start justify-between gap-space-sm mb-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-on-surface-variant text-[20px]">voicemail</span>
+<h2 class="font-headline-sm text-headline-sm text-on-surface truncate">Kabir Mehta</h2>
+<span class="font-data-mono text-body-sm text-on-surface-variant">#1004</span>
+</div>
+<span class="px-space-xs py-space-2xs rounded-full bg-surface-variant text-on-surface-variant font-label-sm text-[11px]">Voice Note</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2 mb-space-sm">
+          "Recorded voice prompt: Missed scheduled check-in window. Automated ping returned 2m voice note regarding work stress."
+        </p>
+<div class="flex items-center justify-between pt-space-xs bg-surface-container-low/30 px-space-sm py-space-xs rounded-lg">
+<div class="flex items-center gap-space-sm font-label-sm text-[11px] text-on-surface-variant">
+<span>Voice (2m 10s)</span>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+<span>Yesterday, 7:20 PM</span>
+</div>
+<div class="flex items-center gap-space-xs">
+<span class="font-label-sm text-[11px] text-on-surface-variant">Distress</span>
+<span class="font-headline-sm text-headline-sm text-on-surface font-semibold">58</span>
+</div>
+</div>
+</div>
+<!-- Item 4: Priya Singh -->
+<div class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm hover:shadow-md transition-all cursor-pointer">
+<div class="flex items-start justify-between gap-space-sm mb-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-on-surface-variant text-[20px]">mic</span>
+<h2 class="font-headline-sm text-headline-sm text-on-surface truncate">Priya Singh</h2>
+<span class="font-data-mono text-body-sm text-on-surface-variant">#1003</span>
+</div>
+<span class="px-space-xs py-space-2xs rounded-full bg-surface-container-high text-on-surface-variant font-label-sm text-[11px]">Stable</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2 mb-space-sm">
+          "Completed breathing exercise session with VIORA bot. Reported calmness score 7/10 before sleeping."
+        </p>
+<div class="flex items-center justify-between pt-space-xs bg-surface-container-low/30 px-space-sm py-space-xs rounded-lg">
+<div class="flex items-center gap-space-sm font-label-sm text-[11px] text-on-surface-variant">
+<span>Voice (4m 15s)</span>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+<span>Yesterday, 6:40 PM</span>
+</div>
+<div class="flex items-center gap-space-xs">
+<span class="font-label-sm text-[11px] text-on-surface-variant">Distress</span>
+<span class="font-headline-sm text-headline-sm text-on-surface-variant font-semibold">32</span>
+</div>
+</div>
+</div>
+<!-- Item 5: Sneha Roy -->
+<div class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm hover:shadow-md transition-all cursor-pointer">
+<div class="flex items-start justify-between gap-space-sm mb-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-on-surface-variant text-[20px]">mic</span>
+<h2 class="font-headline-sm text-headline-sm text-on-surface truncate">Sneha Roy</h2>
+<span class="font-data-mono text-body-sm text-on-surface-variant">#1005</span>
+</div>
+<span class="px-space-xs py-space-2xs rounded-full bg-surface-container text-on-surface-variant font-label-sm text-[11px]">Improving</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2 mb-space-sm">
+          "Journal entry check-in: Attended college seminar without panic trigger. Voice cadence steady."
+        </p>
+<div class="flex items-center justify-between pt-space-xs bg-surface-container-low/30 px-space-sm py-space-xs rounded-lg">
+<div class="flex items-center gap-space-sm font-label-sm text-[11px] text-on-surface-variant">
+<span>Voice (5m 02s)</span>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+<span>Yesterday, 9:15 AM</span>
+</div>
+<div class="flex items-center gap-space-xs">
+<span class="font-label-sm text-[11px] text-on-surface-variant">Distress</span>
+<span class="font-headline-sm text-headline-sm text-on-surface-variant font-semibold">28</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Active Transcript, Audio Scrubber & Clinical AI Entity Ribbons -->
+<div class="lg:col-span-8 flex flex-col gap-space-md">
+<!-- Patient Header & Telemetry Identity Banner -->
+<div class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm">
+<div class="flex flex-wrap items-start justify-between gap-space-md pb-space-md">
+<div class="flex items-start gap-space-md">
+<div class="relative">
+<img class="w-12 h-12 rounded-full object-cover shadow-sm" data-alt="Clinical portrait photograph of Ananya Sharma, a 26-year-old South Asian female patient with neutral expression in soft diffused clinic lighting with cool indigo tones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCnDioEdNZHfWgsdif35DXmbxkUP6BiibATog84y9LVwmnFk6EpzRW-e_NwGX1yga_dmuhhewzHDxukNtQwvLAcKSgdEBOixa_Xt1JlNTgzwfb0noh1Y7_75LhNKP9XAY8TDKZuk_LVO-RPIQNzNzdzn97I19oi7ZZJ7haQ5fCshZEC9BQJne-ClZBGbghEPvuHtSkhAEqANRnnslSWXClV-5XEi7_MXmBczBfsvHdtpBq6HPV5dlAx"/>
+<span class="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-error ring-2 ring-surface-container-lowest"></span>
+</div>
+<div>
+<div class="flex items-center gap-space-sm">
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Ananya Sharma</h2>
+<span class="font-data-mono text-body-sm text-on-surface-variant bg-surface-container-low px-space-xs py-0.5 rounded">UID-1001</span>
+<span class="px-space-xs py-0.5 rounded-full bg-error-container text-on-error-container font-label-sm text-[11px] font-bold">CRITICAL COHORT</span>
+</div>
+<div class="flex flex-wrap items-center gap-space-xs font-body-sm text-body-sm text-on-surface-variant mt-space-2xs">
+<span>Voice Check-in v5</span>
+<span>•</span>
+<span>Ingested Today, 9:34 AM</span>
+<span>•</span>
+<span>Duration 3m 42s</span>
+<span>•</span>
+<span class="font-data-mono text-[11px]">Hindi / Hinglish NLP Model v4.2</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-space-xs">
+<button class="flex items-center gap-space-xs px-space-sm py-space-xs rounded-lg bg-surface-container-low text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors font-label-md text-label-md" type="button">
+<span class="material-symbols-outlined text-[18px]">folder_open</span>
+<span>View Case</span>
+</button>
+<button class="flex items-center gap-space-xs px-space-sm py-space-xs rounded-lg bg-surface-container-low text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors font-label-md text-label-md" type="button">
+<span class="material-symbols-outlined text-[18px]">ios_share</span>
+<span>Export</span>
+</button>
+</div>
+</div>
+<!-- Telemetry Audio Scrubber Bar with Real Waveform Data Visualization -->
+<div class="p-space-md rounded-xl bg-surface-container-low flex flex-col gap-space-xs">
+<div class="flex items-center justify-between font-data-mono text-body-sm text-on-surface-variant">
+<div class="flex items-center gap-space-xs">
+<span class="w-2 h-2 rounded-full bg-primary-container animate-ping"></span>
+<span class="text-on-surface font-semibold">01:42</span>
+<span>/</span>
+<span>03:42</span>
+</div>
+<div class="flex items-center gap-space-sm font-label-sm text-label-sm">
+<span class="text-on-surface-variant">Acoustic Pitch Jitter: <strong class="text-error">0.42% (Elevated)</strong></span>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+<button class="px-space-xs py-0.5 rounded bg-surface-container text-on-surface font-data-mono text-[11px] font-semibold" type="button">1.0x</button>
+<button class="px-space-xs py-0.5 rounded text-on-surface-variant hover:text-on-surface font-data-mono text-[11px]" type="button">1.25x</button>
+</div>
+</div>
+<!-- Waveform Visualizer SVG -->
+<div class="flex items-center gap-space-md py-space-xs">
+<button class="w-9 h-9 rounded-full bg-primary-container text-on-primary flex items-center justify-center shadow-sm hover:bg-primary transition-colors flex-shrink-0" type="button">
+<span class="material-symbols-outlined text-[20px]">pause</span>
+</button>
+<div class="relative w-full h-12 flex items-center cursor-pointer">
+<!-- Inline Audio Waveform Bar Graph -->
+<svg class="w-full h-full text-surface-variant" fill="none" preserveaspectratio="none" viewbox="0 0 400 48">
+<!-- Played portion (Primary Indigo) -->
+<path d="M2 24v8M6 24v12M10 24v-6M14 24v14M18 24v-10M22 24v16M26 24v-14M30 24v18M34 24v-8M38 24v20M42 24v-12M46 24v22M50 24v-16M54 24v24M58 24v-18M62 24v14M66 24v-12M70 24v20M74 24v-10M78 24v18M82 24v-14M86 24v22M90 24v-18M94 24v24M98 24v-16M102 24v12M106 24v-8M110 24v20M114 24v-12M118 24v18M122 24v-14M126 24v22M130 24v-10M134 24v16M138 24v-6M142 24v14M146 24v-12M150 24v20M154 24v-16M158 24v22M162 24v-10M166 24v14M170 24v-6M174 24v12M178 24v-8" stroke="#4f46e5" stroke-linecap="round" stroke-width="2.5"></path>
+<!-- Scrubber Head Marker Pip -->
+<circle cx="180" cy="24" fill="#3525cd" r="5"></circle>
+<!-- Unplayed portion (Surface Variant/Dimmed) -->
+<path d="M182 24v16M186 24v-10M190 24v22M194 24v-14M198 24v18M202 24v-8M206 24v24M210 24v-12M214 24v14M218 24v-6M222 24v20M226 24v-16M230 24v22M234 24v-10M238 24v18M242 24v-14M246 24v16M250 24v-8M254 24v20M258 24v-12M262 24v14M266 24v-6M270 24v18M274 24v-10M278 24v16M282 24v-12M286 24v22M290 24v-14M294 24v16M298 24v-8M302 24v20M306 24v-10M310 24v14M314 24v-6M318 24v16M322 24v-12M326 24v20M330 24v-10M334 24v14M338 24v-8M342 24v18M346 24v-12M350 24v16M354 24v-6M358 24v12M362 24v-8M366 24v14M370 24v-10M374 24v16M378 24v-8M382 24v12M386 24v-6M390 24v10M394 24v-4M398 24v6" stroke="#c7c4d8" stroke-linecap="round" stroke-width="2.5"></path>
+</svg>
+</div>
+<button class="p-space-xs text-on-surface-variant hover:text-on-surface transition-colors flex-shrink-0" type="button">
+<span class="material-symbols-outlined text-[20px]">volume_up</span>
+</button>
+</div>
+</div>
+<!-- Key Extracted Diagnostic Chips (Concise Clinical Findings) -->
+<div class="mt-space-md pt-space-md border-t-0 flex flex-wrap items-center gap-space-xs">
+<div class="flex items-center gap-space-xs px-space-sm py-space-2xs rounded-full bg-error-container text-on-error-container font-label-sm text-[12px]">
+<span class="w-1.5 h-1.5 rounded-full bg-error"></span>
+<span>Safety Threat: <strong>Present (Passive)</strong></span>
+</div>
+<div class="flex items-center gap-space-xs px-space-sm py-space-2xs rounded-full bg-surface-container-high text-on-surface font-label-sm text-[12px]">
+<span class="material-symbols-outlined text-[15px] text-primary">camera_outdoor</span>
+<span>Acoustic Tremor: <strong class="font-data-mono">6.4%</strong></span>
+</div>
+<div class="flex items-center gap-space-xs px-space-sm py-space-2xs rounded-full bg-surface-container-high text-on-surface font-label-sm text-[12px]">
+<span class="material-symbols-outlined text-[15px] text-on-surface-variant">bedtime</span>
+<span>Insomnia: <strong>3 Consecutive Nights</strong></span>
+</div>
+<div class="flex items-center gap-space-xs px-space-sm py-space-2xs rounded-full bg-surface-container-high text-on-surface font-label-sm text-[12px]">
+<span class="material-symbols-outlined text-[15px] text-error">sentiment_very_dissatisfied</span>
+<span>Sentiment Valence: <strong class="font-data-mono text-error">-0.78</strong></span>
+</div>
+<div class="flex items-center gap-space-xs px-space-sm py-space-2xs rounded-full bg-primary-fixed text-on-primary-fixed font-label-sm text-[12px]">
+<span class="material-symbols-outlined text-[15px]">auto_awesome</span>
+<span>AI Rationale: High Somatic Anxiety</span>
+</div>
+</div>
+</div>
+<!-- Verbatim Transcript Feed with Bilingual NLP Annotation Stream -->
+<div class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm flex flex-col gap-space-lg">
+<div class="flex items-center justify-between pb-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[20px]">record_voice_over</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Synchronized Dialogue Stream</h3>
+</div>
+<span class="font-data-mono text-[11px] text-on-surface-variant">Timestamp synchronized with audio telemetry</span>
+</div>
+<div class="flex flex-col gap-space-md">
+<!-- Turn 1: VIORA AI Agent -->
+<div class="flex items-start gap-space-md">
+<div class="w-8 h-8 rounded-full bg-primary-container text-on-primary flex items-center justify-center font-label-sm text-xs font-bold shadow-sm flex-shrink-0 mt-1">
+              AI
+            </div>
+<div class="flex-1 bg-surface-container-low p-space-md rounded-xl shadow-sm">
+<div class="flex items-center justify-between mb-space-2xs">
+<span class="font-label-sm text-label-sm font-semibold text-primary">VIORA Clinical Ingestion Agent</span>
+<span class="font-data-mono text-[11px] text-on-surface-variant">00:04</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface">
+                "Namaste Ananya. Yeh aapka subah ka scheduled check-in hai. Pichle 24 ghanton mein aap kaisa mehsoos kar rahi hain?"
+              </p>
+<div class="mt-space-xs pt-space-xs text-on-surface-variant font-body-sm text-[12px] italic">
+                [English Translation: Good morning Ananya. This is your scheduled morning check-in. How have you been feeling over the last 24 hours?]
+              </div>
+</div>
+</div>
+<!-- Turn 2: Patient Response (Highlighted Entity) -->
+<div class="flex items-start gap-space-md">
+<div class="relative w-8 h-8 rounded-full overflow-hidden flex-shrink-0 mt-1">
+<img class="w-full h-full object-cover" data-alt="Close-up clinical identity thumbnail of patient Ananya Sharma with calm lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCu_O9TgAWLr1pnT3z-RkQ3UWE_WsSPyKoQs5F7Fni8mksNZtaA72rUdwJdUPb5vbVznZkHLo7HwXmn0hIZbt0J4hh3e-5W3IPV0qpnk6_n6KttEqO3HGL9q2BMl7lAhSIQ9dmiVfo8zcGBxpzgTXJeaD11l3YlSzhi_nkeTksc9aUF1cM3biRyf7chl5w9TAOi2RWUp8GxPYB-0t-LDndvZrgOr3F0y7LA7y3F_97qCAQSILjb24P7"/>
+</div>
+<div class="flex-1 bg-surface-container-lowest p-space-md rounded-xl shadow-md">
+<div class="flex items-center justify-between mb-space-2xs">
+<div class="flex items-center gap-space-xs">
+<span class="font-label-sm text-label-sm font-semibold text-on-surface">Ananya Sharma</span>
+<span class="px-space-xs py-0.5 rounded bg-error-container text-on-error-container font-data-mono text-[10px] font-bold">ACOUSTIC TREMOR: 7.1%</span>
+</div>
+<span class="font-data-mono text-[11px] text-on-surface-variant">00:19</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface leading-relaxed">
+                "Sach bolun toh halat theek nahi hai. <mark class="bg-error-container text-on-error-container px-1 rounded font-medium">Main pichle teen din se bilkul so nahi pa rahi hoon</mark>. Raat ko 3 baje achanak heart rate bahut tez ho jata hai aur lagta hai saans ruk jayegi."
+              </p>
+<div class="mt-space-xs pt-space-xs text-on-surface-variant font-body-sm text-[12px] italic">
+                [Translation: To be honest, condition is not good. I haven't been able to sleep at all for the last 3 days. Around 3 AM my heart rate spikes suddenly and it feels like I can't breathe.]
+              </div>
+<!-- Clinical Entity Callout ribbon -->
+<div class="mt-space-sm p-space-xs rounded bg-surface-container-high/60 flex items-center justify-between font-label-sm text-[11px]">
+<span class="text-on-surface-variant">Extracted Phenotype: <strong>Severe Sleep Maintenance Insomnia &amp; Tachycardia Episode</strong></span>
+<span class="text-primary font-medium cursor-pointer hover:underline">Link to DSM-5 Diagnostic Criteria →</span>
+</div>
+</div>
+</div>
+<!-- Turn 3: VIORA AI Response -->
+<div class="flex items-start gap-space-md">
+<div class="w-8 h-8 rounded-full bg-primary-container text-on-primary flex items-center justify-center font-label-sm text-xs font-bold shadow-sm flex-shrink-0 mt-1">
+              AI
+            </div>
+<div class="flex-1 bg-surface-container-low p-space-md rounded-xl shadow-sm">
+<div class="flex items-center justify-between mb-space-2xs">
+<span class="font-label-sm text-label-sm font-semibold text-primary">VIORA Clinical Ingestion Agent</span>
+<span class="font-data-mono text-[11px] text-on-surface-variant">01:05</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface">
+                "Mujhe yeh sunkar dukh hua Ananya. Kya is ghabrahat ke dauran aapko khud ko chot pahunchane ya kisi tarah ke bure khayal aaye hain?"
+              </p>
+<div class="mt-space-xs pt-space-xs text-on-surface-variant font-body-sm text-[12px] italic">
+                [English Translation: I'm sorry to hear that Ananya. During these anxious moments, have you experienced any thoughts of hurting yourself or intrusive hopeless thoughts?]
+              </div>
+</div>
+</div>
+<!-- Turn 4: Patient Response (Critical Threat Tag) -->
+<div class="flex items-start gap-space-md">
+<div class="relative w-8 h-8 rounded-full overflow-hidden flex-shrink-0 mt-1">
+<img class="w-full h-full object-cover" data-alt="Close-up clinical identity thumbnail of patient Ananya Sharma with calm lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBniL-e_FcupN8TDma6Nn8LVzzhJPW5pupIGjNr1d9zWtb9Oteigum24NtC-RxfAAwuNoNCZAvqCsoD_33IZAEa7L4BeTBU895N8KBMlJdpjvIQh-gNWnUehKvVmeuR0yNWENIbihtcZDKVZPz_XgGgI5ce--XnIiILngJtuHOfCofnbMnPSQvB7tImyxME4Gg9Ot_rhJ7vWKXz4Qbl7J8pWHz6CP4Pr2cMD689eFja1FLGv7DlP5Dr"/>
+</div>
+<div class="flex-1 bg-surface-container-lowest p-space-md rounded-xl shadow-md">
+<div class="flex items-center justify-between mb-space-2xs">
+<div class="flex items-center gap-space-xs">
+<span class="font-label-sm text-label-sm font-semibold text-on-surface">Ananya Sharma</span>
+<span class="px-space-xs py-0.5 rounded bg-error text-on-error font-data-mono text-[10px] font-bold">SAFETY FLAG ACTIVE</span>
+</div>
+<span class="font-data-mono text-[11px] text-on-surface-variant">01:42</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface leading-relaxed">
+                "Bas lagta hai ki <mark class="bg-error-container text-on-error-container px-1 rounded font-medium">sab kuch band ho jaye aur mujhe subah uthna na pade</mark>. Par maine koi plan nahi banaya hai... bas dimaag thak chuka hai."
+              </p>
+<div class="mt-space-xs pt-space-xs text-on-surface-variant font-body-sm text-[12px] italic">
+                [Translation: I just feel like everything should stop and I wouldn't have to wake up in the morning. But I haven't made any plan... my mind is just completely exhausted.]
+              </div>
+<!-- Automated C-SSRS Risk Mapping Snippet -->
+<div class="mt-space-sm p-space-sm rounded-lg bg-error-container/30 flex items-start gap-space-sm">
+<span class="material-symbols-outlined text-error text-[18px] flex-shrink-0 mt-0.5">warning</span>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-error-container font-semibold">C-SSRS Triage Alert: Level 2 Passive Ideation</span>
+<span class="font-data-mono text-[11px] text-on-error-container font-bold">CONFIDENCE 94%</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-error-container/90 mt-space-2xs">
+                    Automated protocol recommends Dr. Sharma review prior to 12:00 PM case conference. Safety plan tier-1 active.
+                  </p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Clinician Rapid Decision Bar (Fixed contextual action strip at base of transcript) -->
+<div class="mt-space-sm p-space-md rounded-xl bg-surface-container flex flex-wrap items-center justify-between gap-space-md shadow-sm">
+<div class="flex items-center gap-space-sm">
+<div class="w-2.5 h-2.5 rounded-full bg-error animate-pulse"></div>
+<span class="font-label-md text-label-md text-on-surface font-semibold">Clinician Triage Action Required</span>
+<span class="font-data-mono text-body-sm text-on-surface-variant">Session UID: 1001-V5-934</span>
+</div>
+<div class="flex items-center gap-space-xs">
+<button class="flex items-center gap-space-xs px-space-md py-space-xs rounded-lg bg-surface-container-lowest text-error hover:bg-error-container transition-colors font-label-md text-label-md shadow-sm" type="button">
+<span class="material-symbols-outlined text-[18px]">flag</span>
+<span>Flag for Clinical Review</span>
+</button>
+<button class="flex items-center gap-space-xs px-space-md py-space-xs rounded-lg bg-surface-container-lowest text-on-surface hover:bg-surface-container-high transition-colors font-label-md text-label-md shadow-sm" type="button">
+<span class="material-symbols-outlined text-[18px]">add_task</span>
+<span>Attach to Case Note</span>
+</button>
+<button class="flex items-center gap-space-xs px-space-md py-space-xs rounded-lg bg-primary-container text-on-primary hover:bg-primary transition-colors font-label-md text-label-md shadow-sm" type="button">
+<span class="material-symbols-outlined text-[18px]">phone_in_talk</span>
+<span>Schedule Priority Outreach</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div></main></div></body></html>

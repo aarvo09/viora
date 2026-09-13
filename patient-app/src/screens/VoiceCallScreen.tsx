@@ -9,7 +9,17 @@
  */
 
 import { useEffect, useState } from 'react'
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import {
+  ActivityIndicator,
+  Keyboard,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableWithoutFeedback,
+  View,
+} from 'react-native'
 import { useVoiceTurn } from '../hooks/useVoiceTurn'
 import { formatDuration } from '../lib/datetime'
 import { colors, radius, shadow, space, type as typeScale } from '../theme'
@@ -61,22 +71,47 @@ export function VoiceCallScreen({
   }, [])
 
   const label = LABEL[voice.phase] ?? LABEL.THINKING
-  const showDone = voice.phase === 'LISTENING' && voice.listenMode === 'DURATION'
   const subtitles = voice.messages.slice(-3)
+
+  const [textInput, setTextInput] = useState('')
+
+  const handleSendText = async () => {
+    const text = textInput.trim()
+    if (!text || voice.phase === 'THINKING') return
+    setTextInput('')
+    Keyboard.dismiss()
+    await voice.sendTextTurn(text)
+  }
+
+  const handleExit = async () => {
+    try {
+      await voice.end()
+    } catch {
+      /* ignore */
+    }
+    onExit()
+  }
 
   const endCall = async () => {
     if (ending) return
     setEnding(true)
-    const version = await voice.end()
-    if (version != null) onComplete(version, null, null)
-    else setEnding(false)
+    Keyboard.dismiss()
+    try {
+      const version = await Promise.race([
+        voice.end(),
+        new Promise<number>((resolve) => setTimeout(() => resolve(1), 2500)),
+      ])
+      onComplete(version ?? 1, null, null)
+    } catch {
+      onExit()
+    }
   }
 
   return (
     <Screen padded>
       {/* Top Header */}
       <View style={styles.topHeader}>
-        <Pressable onPress={onExit} style={styles.backBtn} accessibilityLabel="Exit call">
+        <Pressable onPress={handleExit} style={styles.backBtn} accessibilityLabel="Exit call">
           <Icon name="close" size={20} color={colors.ink} />
         </Pressable>
         <View style={styles.headerTitleRow}>
@@ -108,14 +143,16 @@ export function VoiceCallScreen({
       </View>
 
       {/* Center Voice Orb Stage */}
-      <View style={styles.stage}>
-        <VoiceOrb
-          state={ORB[voice.phase] ?? 'THINKING'}
-          label={label.en}
-          sublabel={label.hi}
-          level={voice.level}
-        />
-      </View>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={styles.stage}>
+          <VoiceOrb
+            state={ORB[voice.phase] ?? 'THINKING'}
+            label={label.en}
+            sublabel={label.hi}
+            level={voice.level}
+          />
+        </View>
+      </TouchableWithoutFeedback>
 
       {/* Subtitles / Real-Time Dialogue Stream Card */}
       <View style={styles.subtitleCard}>
@@ -165,13 +202,26 @@ export function VoiceCallScreen({
         </View>
       )}
 
-      {/* Manual "Done speaking" button if no audio levels */}
-      {showDone && (
-        <Pressable style={styles.doneBtn} onPress={voice.finishSpeaking}>
-          <Text style={styles.doneText}>Done speaking</Text>
-          <Text style={styles.doneSub}>बात पूरी हुई</Text>
+      {/* Inline Text Input for Text/Voice Hybrid Check-in */}
+      <View style={styles.textComposer}>
+        <TextInput
+          style={styles.composerInput}
+          value={textInput}
+          onChangeText={setTextInput}
+          placeholder={language?.startsWith('hi') ? 'बोलें या यहाँ लिखकर बताएं…' : 'Speak or type your message…'}
+          placeholderTextColor={colors.inkSoft}
+          onSubmitEditing={handleSendText}
+          returnKeyType="send"
+        />
+        <Pressable
+          style={[styles.composerSendBtn, (!textInput.trim() || voice.phase === 'THINKING') && styles.sendDisabled]}
+          onPress={handleSendText}
+          disabled={!textInput.trim() || voice.phase === 'THINKING'}
+          accessibilityLabel="Send message"
+        >
+          <Icon name="send" size={18} color="#FFFFFF" />
         </Pressable>
-      )}
+      </View>
 
       {/* Bottom Interactive Control Tray */}
       <View style={styles.controlTray}>
@@ -196,10 +246,15 @@ export function VoiceCallScreen({
             style={({ pressed }) => [
               styles.endCallBtn,
               pressed && { opacity: 0.9, transform: [{ scale: 0.94 }] },
+              ending && { opacity: 0.8 },
             ]}
             accessibilityLabel="End call"
           >
-            <Icon name="phone" size={28} color="#FFFFFF" />
+            {ending ? (
+              <ActivityIndicator color="#FFFFFF" size="small" />
+            ) : (
+              <Icon name="phone" size={28} color="#FFFFFF" />
+            )}
           </Pressable>
 
           {/* Speaker Button (State indicator) */}
@@ -383,26 +438,6 @@ const styles = StyleSheet.create({
   subtitleLatest: {
     opacity: 1,
   },
-  doneBtn: {
-    alignSelf: 'center',
-    alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.primary,
-    borderRadius: radius.pill,
-    paddingVertical: space.xs,
-    paddingHorizontal: space.lg,
-    marginBottom: space.xs,
-  },
-  doneText: {
-    color: colors.primary,
-    fontSize: typeScale.sm,
-    fontWeight: '700',
-  },
-  doneSub: {
-    color: colors.muted,
-    fontSize: typeScale.xs,
-  },
   errorBox: {
     padding: space.sm,
     borderRadius: radius.sm,
@@ -469,5 +504,37 @@ const styles = StyleSheet.create({
     fontSize: typeScale.sm,
     fontWeight: '700',
     color: colors.ink,
+  },
+  textComposer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.xs,
+    backgroundColor: colors.surface,
+    borderRadius: radius.pill,
+    paddingHorizontal: space.sm,
+    paddingVertical: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(124, 92, 252, 0.25)',
+    marginHorizontal: space.xs,
+    marginBottom: space.sm,
+    ...shadow.subtle,
+  },
+  composerInput: {
+    flex: 1,
+    paddingHorizontal: space.sm,
+    paddingVertical: 8,
+    fontSize: typeScale.sm,
+    color: colors.ink,
+  },
+  composerSendBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sendDisabled: {
+    opacity: 0.4,
   },
 })
