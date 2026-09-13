@@ -1,0 +1,24 @@
+{
+  "expo": {
+    "name": "VIORA",
+    "slug": "viora",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": false,
+    "splash": {
+      "backgroundColor": "#F6F4EF",
+      "resizeMode": "contain"
+    },
+    "android": {
+      "package": "app.viora.patient",
+      "usesCleartextTraffic": true
+    },
+    "ios": {
+      "supportsTablet": false
+    },
+    "plugins": [
+      ["expo-av", { "microphonePermission": "VIORA uses the microphone only when you start a voice check-in." }]
+    ]
+  }
+}

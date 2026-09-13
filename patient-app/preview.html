@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="hi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>VIORA — Patient</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+/* VIORA patient-app design tokens — same teal/cream ground as the dashboard,
+   but warmer, larger, and more expressive. This is the calm, supportive face. */
+:root{
+  --bg:#f6f4ef; --bg-glow-a:#e9f1ee; --bg-glow-b:#f2e9e2;
+  --surface:#fff; --ink:#1b2432; --ink-soft:#46505f; --muted:#6b7684;
+  --line:#e6e1d8;
+  --primary:#2e7d74; --primary-hover:#266a62; --primary-tint:#e6f0ee;
+  --accent:#e8a87c; --accent-tint:#f6ece3;
+  --risk-low:#4c9a78; --risk-critical:#c0453c;
+  --font:'Inter',system-ui,sans-serif;
+  --font-display:'Outfit',var(--font);
+  --font-hi:'Noto Sans Devanagari',var(--font);
+  --radius:16px; --radius-sm:12px;
+  --shadow:0 10px 30px rgba(27,36,50,.10),0 1px 3px rgba(27,36,50,.05);
+  --shadow-glow:0 0 0 1px var(--line),0 12px 34px rgba(46,125,116,.16);
+  --motion:260ms ease-out; --motion-slow:900ms cubic-bezier(.22,1,.36,1);
+  --breathe:4200ms ease-in-out infinite; --drift:22000s linear infinite;
+}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased;min-height:100vh;position:relative;overflow-x:hidden}
+h1,h2,h3,p{margin:0}
+button{font:inherit;color:inherit}
+.hi{font-family:var(--font-hi);line-height:1.6}
+.display{font-family:var(--font-display)}
+
+/* ambient drifting wash */
+.ambience{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.ambience::before{content:'';position:absolute;inset:-45%;background:radial-gradient(45% 45% at 25% 25%,var(--bg-glow-a),transparent 70%),radial-gradient(45% 45% at 75% 70%,var(--bg-glow-b),transparent 70%);filter:blur(48px);opacity:.6;animation:drift var(--drift) linear infinite alternate}
+@keyframes drift{from{transform:translate3d(-5%,-4%,0)}to{transform:translate3d(5%,4%,0)}}
+
+/* the orb — the emotional centre of the voice screen */
+.orb{width:168px;height:168px;border-radius:50%;position:relative;margin:0 auto;display:grid;place-items:center}
+.orb-core{width:100%;height:100%;border-radius:50%;background:radial-gradient(circle at 34% 30%,#4aa59a,var(--primary) 62%,#215851);box-shadow:0 12px 40px rgba(46,125,116,.4), inset 0 -8px 20px rgba(0,0,0,.12);animation:breathe var(--breathe)}
+@keyframes breathe{0%,100%{transform:scale(.94);opacity:.9}50%{transform:scale(1);opacity:1}}
+.orb-ring{position:absolute;inset:0;border-radius:50%;border:2px solid rgba(46,125,116,.35);animation:pulse var(--breathe) infinite}
+.orb-ring.r2{animation-delay:1.4s}
+.orb-ring.r3{animation-delay:2.8s}
+@keyframes pulse{0%,100%{transform:scale(.9);opacity:.5}50%{transform:scale(1.12);opacity:0}}
+.orb-idle .orb-ring{border-color:rgba(107,118,132,.25);animation-duration:7000ms}
+.orb-idle .orb-core{background:radial-gradient(circle at 34% 30%,#9fb0ac,var(--muted) 62%,#50585f)}
+
+/* content */
+.screen{position:relative;z-index:1;max-width:430px;margin:0 auto;padding:28px 22px;min-height:100vh;display:flex;flex-direction:column}
+.top{display:flex;align-items:center;justify-content:space-between}
+.brand{font-family:var(--font-display);font-size:16px;font-weight:700;letter-spacing:.18em;color:var(--primary)}
+.link{color:var(--muted);font-size:13px;text-decoration:underline;cursor:pointer;border:none;background:none}
+.link-primary{color:var(--primary);text-decoration:none;font-weight:600}
+.centre{flex:1;display:flex;flex-direction:column;justify-content:center;gap:12px;align-items:center;text-align:center}
+.h1{font-family:var(--font-display);font-size:30px;font-weight:700;color:var(--ink)}
+.h2{font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--ink)}
+.sub{color:var(--muted);font-size:15px;line-height:1.6}
+.sub.hi{font-size:16px}
+
+/* warm, loaded button */
+.btn{background:var(--primary);color:#fff;border:none;border-radius:var(--radius-pill);font-size:17px;font-weight:600;font-family:var(--font-display);padding:18px 48px;cursor:pointer;box-shadow:0 8px 24px rgba(46,125,116,.32);transition:transform var(--motion),box-shadow var(--motion);letter-spacing:.01em}
+.btn:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(46,125,116,.4)}
+.btn:active{transform:translateY(0)}
+.btn-soft{background:var(--primary-tint);color:var(--primary);box-shadow:none}
+.btn-ghost{background:transparent;color:var(--primary);box-shadow:none;padding:10px 20px;font-size:15px}
+
+/* profile card */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:18px;display:flex;align-items:center;gap:16px;cursor:pointer;box-shadow:var(--shadow);transition:transform var(--motion),box-shadow var(--motion);width:100%}
+.card:hover{transform:translateY(-2px);box-shadow:var(--shadow-glow)}
+.avatar{width:56px;height:56px;border-radius:50%;background:var(--primary-tint);display:grid;place-items:center;font-family:var(--font-display);font-size:24px;color:var(--primary);font-weight:700}
+.pcard .sub{font-size:13px}
+.chev{color:var(--muted);font-size:22px}
+
+/* bubble conversation */
+.msg{max-width:86%;padding:14px 16px;border-radius:var(--radius);font-size:16px;line-height:1.55}
+.msg.hi{font-size:17px}
+.msg-viora{align-self:flex-start;background:var(--surface);border:1px solid var(--line);border-bottom-left-radius:4px;box-shadow:var(--shadow-sm)}
+.msg-user{align-self:flex-end;background:var(--primary-tint);border-bottom-right-radius:4px}
+.wait{align-self:flex-start;color:var(--muted);font-size:13px;padding:6px 16px;display:flex;gap:4px;align-items:center}
+.wait .dot{width:5px;height:5px;border-radius:50%;background:var(--muted);animation:blink 1.2s infinite}
+.wait .dot:nth-child(2){animation-delay:.2s}
+.wait .dot:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,100%{opacity:.3}50%{opacity:1}}
+
+/* voice bar + orb state */
+.vstate{margin-top:16px;text-align:center;color:var(--muted);font-size:14px;font-family:var(--font-display);letter-spacing:.04em}
+
+/* crisis panel */
+.crisis{margin-top:16px;padding:16px;background:var(--surface);border-left:4px solid var(--risk-critical);border-radius:var(--radius-sm);box-shadow:var(--shadow-sm)}
+.crisis .t{font-weight:600;color:var(--ink)}
+.crisis .s{color:var(--muted);font-size:14px;margin-top:4px}
+.crisis .n{display:flex;align-items:center;gap:12px;margin-top:12px}
+.crisis .num{font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--primary)}
+.crisis .nm{color:var(--ink-soft);font-size:14px}
+.crisis .note{color:var(--primary);font-size:13px;font-weight:600;margin-top:12px}
+
+/* composer */
+.composer{display:flex;gap:10px;margin-top:14px}
+.composer input{flex:1;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-pill);padding:15px 20px;font-size:16px;color:var(--ink);outline:none;transition:border-color var(--motion),box-shadow var(--motion)}
+.composer input:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-tint)}
+.composer button{background:var(--primary);color:#fff;border:none;width:52px;height:52px;border-radius:50%;font-size:19px;cursor:pointer;box-shadow:0 6px 16px rgba(46,125,116,.3)}
+.cta{display:flex;flex-direction:column;gap:10px;margin-top:16px;align-items:center}
+
+.rise{animation:rise .9s cubic-bezier(.22,1,.36,1) both}
+.rise-1{animation-delay:.05s}.rise-2{animation-delay:.1s}.rise-3{animation-delay:.15s}.rise-4{animation-delay:.2s}.rise-5{animation-delay:.25s}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div class="ambience"></div>
+
+<!-- ============================ WELCOME ============================ -->
+<section id="welcome" class="screen rise">
+  <div class="centre">
+    <div class="orb orb-idle" style="margin-bottom:28px">
+      <div class="orb-ring r1"></div><div class="orb-ring r2"></div><div class="orb-ring r3"></div>
+      <div class="orb-core"></div>
+    </div>
+    <div class="h1">VIORA</div>
+    <p class="sub">a calm space, whenever you need one</p>
+    <p class="sub hi">जब भी ज़रूरत हो, एक सुकून भरी बात</p>
+    <button class="btn" style="margin-top:36px" onclick="goto('pick')">
+      <span class="hi">शुरू करें</span>
+    </button>
+  </div>
+</section>
+
+<!-- ============================ PROFILE PICKER ============================ -->
+<section id="pick" class="screen rise hidden">
+  <div class="top">
+    <div class="brand">VIORA</div>
+    <button class="link" onclick="goto('welcome')">Exit</button>
+  </div>
+  <div class="centre" style="align-items:stretch;gap:24px">
+    <div style="text-align:center">
+      <div class="h1">Who is checking in?</div>
+      <p class="sub hi" style="margin-top:6px">आपके साथ कौन बात कर रहा है?</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="card rise rise-1" onclick="select('Meera')">
+        <div class="avatar">M</div>
+        <div style="flex:1">
+          <div class="display" style="font-size:17px;font-weight:600">Meera</div>
+          <div class="sub hi">हिन्दी</div>
+        </div>
+        <div class="chev">›</div>
+      </div>
+      <div class="card rise rise-2" onclick="select('Sunita')">
+        <div class="avatar">S</div>
+        <div style="flex:1">
+          <div class="display" style="font-size:17px;font-weight:600">Sunita</div>
+          <div class="sub hi">हिन्दी</div>
+        </div>
+        <div class="chev">›</div>
+      </div>
+      <div class="card rise rise-3" onclick="select('Kavita')">
+        <div class="avatar">K</div>
+        <div style="flex:1">
+          <div class="display" style="font-size:17px;font-weight:600">Kavita</div>
+          <div class="sub hi">हिन्दी</div>
+        </div>
+        <div class="chev">›</div>
+      </div>
+    </div>
+    <p class="sub" style="text-align:center;font-size:13px">Choosing a name keeps your check-in and your history together.</p>
+  </div>
+</section>
+
+<!-- ============================ HOME ============================ -->
+<section id="home" class="screen rise hidden">
+  <div class="top">
+    <div class="brand">VIORA</div>
+    <button class="link" onclick="goto('pick')">Change person</button>
+  </div>
+  <div class="centre">
+    <div class="h1 rise rise-1">Hello, <span id="homeName">Kavita</span>.</div>
+    <p class="sub hi rise rise-1">नमस्ते, <span id="homeNameHi">कविता</span>।</p>
+    <p class="sub rise rise-2">A quiet moment, just for you.</p>
+    <button class="btn rise rise-3" style="margin-top:32px" onclick="goto('checkin')"><span class="hi">बात शुरू करें</span></button>
+    <p class="sub rise rise-4" style="margin-top:28px;font-size:14px">Next check-in tomorrow · voice</p>
+  </div>
+</section>
+
+<!-- ============================ CHECK-IN (text) ============================ -->
+<section id="checkin" class="screen rise hidden">
+  <div class="top">
+    <button class="link" onclick="goto('home')">Exit</button>
+    <div class="brand" style="font-size:14px"><span id="modeTag">Text</span></div>
+    <button class="link" onclick="toggleVoice()">Voice</button>
+  </div>
+
+  <div class="centre" style="justify-content:flex-start;align-items:stretch;gap:12px;padding-top:12px">
+    <div class="msg msg-viora hi rise rise-1" id="m1">नमस्ते कविता। मुझे बताइए, इस हफ्ते कैसा रहा?</div>
+    <div class="msg msg-user hi rise rise-2 hidden" id="m2"></div>
+    <div class="wait rise rise-3 hidden" id="typing"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+    <div class="msg msg-viora hi rise rise-3 hidden" id="m3"></div>
+    <div class="crisis rise hidden" id="crisis">
+      <div class="t hi">आप अकेली नहीं हैं। किसी से बात कीजिए।</div>
+      <div class="s">You're not alone. Someone is here for you.</div>
+      <div class="n"><span class="num">112</span><span class="nm">Emergency</span></div>
+      <div class="n"><span class="num">1091</span><span class="nm">Women's helpline</span></div>
+      <div class="n"><span class="num">14416</span><span class="nm">Tele-MANAS</span></div>
+      <div class="note hi">क्या आप चाहेंगी कि हम अभी आपके केस वर्कर को बताएँ?</div>
+    </div>
+  </div>
+
+  <div class="composer" id="composer">
+    <input id="reply" class="hi" placeholder="अपना जवाब लिखिए…" />
+    <button id="send" onclick="sendReply()" aria-label="Send">↑</button>
+  </div>
+  <div class="cta">
+    <button class="btn-ghost btn" style="padding:10px 22px" onclick="endCheckin()">End check-in</button>
+  </div>
+</section>
+
+<!-- ============================ VOICE (orb) ============================ -->
+<section id="voice" class="screen rise hidden">
+  <div class="top">
+    <button class="link" onclick="goto('home')">Exit</button>
+    <div class="brand" style="font-size:14px">Voice</div>
+    <button class="link" onclick="toggleText()">Text</button>
+  </div>
+  <div class="centre">
+    <div class="orb" id="orb" style="margin-bottom:30px">
+      <div class="orb-ring r1"></div><div class="orb-ring r2"></div><div class="orb-ring r3"></div>
+      <div class="orb-core"></div>
+    </div>
+    <div class="vstate display" id="vstate">Speaking…</div>
+    <p class="sub hi" style="margin-top:8px" id="vsub">आपकी बात सुन रही हूँ</p>
+    <!-- Shown only while listening. On the device this tap is how a turn ends
+         early: expo-audio reports no microphone levels, so the app cannot hear
+         that the person has stopped and closes the turn on a timer instead. -->
+    <button class="btn btn-soft hidden" id="vDone" style="margin-top:26px" onclick="doneSpeaking()">
+      Done speaking
+      <span class="hi" style="display:block;font-size:14px;font-weight:500;opacity:.75">बात पूरी हुई</span>
+    </button>
+  </div>
+  <div class="cta">
+    <button class="btn btn-soft hidden" id="vEnd" onclick="endCheckin()">End check-in</button>
+  </div>
+</section>
+
+<!-- ============================ COMPLETE ============================ -->
+<section id="complete" class="screen rise hidden">
+  <div class="centre">
+    <div class="orb orb-idle" style="margin-bottom:28px">
+      <div class="orb-ring r1"></div><div class="orb-ring r2"></div><div class="orb-ring r3"></div>
+      <div class="orb-core"></div>
+    </div>
+    <div class="h2 rise rise-1">Thank you, <span id="doneName">Kavita</span>.</div>
+    <p class="sub hi rise rise-1">आपने बहुत बहादुरी से बात की।</p>
+    <p class="sub rise rise-2">Your words are safe here.</p>
+    <p class="sub hi rise rise-2">आपके शब्द यहाँ सुरक्षित हैं।</p>
+    <button class="btn rise rise-3" style="margin-top:32px" onclick="goto('home')">Done</button>
+  </div>
+</section>
+
+<script>
+let mode = 'text';
+let name = 'Kavita', nameHi = 'कविता';
+let stage = 0;
+/* Pending voice-screen transitions, so reset() can cancel them. */
+let voiceTimers = [];
+
+function show(id){
+  ['welcome','pick','home','checkin','voice','complete'].forEach(s=>{
+    document.getElementById(s).classList.toggle('hidden', s!==id);
+  });
+  window.scrollTo(0,0);
+}
+function goto(id){ reset(); show(id); }
+
+function select(n){
+  const map = {Meera:['Meera','मीरा'],Sunita:['Sunita','सुनीता'],Kavita:['Kavita','कविता']};
+  [name,nameHi] = map[n];
+  document.getElementById('homeName').textContent=name;
+  document.getElementById('homeNameHi').textContent=nameHi;
+  document.getElementById('doneName').textContent=name;
+  document.getElementById('m1').textContent = 'नमस्ते '+nameHi+'। मुझे बताइए, इस हफ्ते कैसा रहा?';
+  goto('home');
+}
+
+function reset(){
+  ['m2','m3','typing','crisis'].forEach(id=>document.getElementById(id).classList.add('hidden'));
+  document.getElementById('reply').value='';
+  stage=0;
+  document.getElementById('modeTag').textContent = mode==='voice'?'Voice':'Text';
+  // Cancel any pending voice transitions: leaving the screen must not let a
+  // queued state change land on whatever screen comes next.
+  voiceTimers.forEach(clearTimeout); voiceTimers = [];
+  document.getElementById('vDone').classList.add('hidden');
+}
+
+function toggleVoice(){ mode='voice'; reset(); show('voice'); voiceLoop(); }
+function toggleText(){ mode='text'; reset(); show('checkin'); }
+function gotoCheckin(){ mode='text'; reset(); show('checkin'); }
+
+function sendReply(){
+  const val = document.getElementById('reply').value.trim();
+  if(!val) return;
+  const m2=document.getElementById('m2'); m2.textContent=val; m2.classList.remove('hidden');
+  document.getElementById('reply').value='';
+  document.getElementById('typing').classList.remove('hidden');
+  const m3=document.getElementById('m3');
+  setTimeout(()=>{
+    document.getElementById('typing').classList.add('hidden');
+    let reply='मैं सुन रही हूँ। थोड़ा और बताइए — क्या हो रहा है?';
+    if(stage===0){ reply='यह सुनकर दुख होता है। कब से ऐसा है?'; }
+    else if(stage===1){ reply='आप घर पर खुद को सुरक्षित महसूस करती हैं?'; }
+    m3.textContent=reply; m3.classList.remove('hidden');
+    if(stage===1){
+      const c=document.getElementById('crisis'); c.classList.remove('hidden');
+    }
+    stage++;
+  }, 900);
+}
+
+function endCheckin(){ goto('complete'); }
+
+/* voice orb state machine — breathing, rippling, thinking; no transcript.
+
+   The "Done speaking" tap appears with every listening phase, matching the
+   device behaviour: expo-audio 0.2.4 enables metering on neither platform, so
+   the app cannot detect that the person stopped talking. A listening turn ends
+   on a ~7s timer, or as soon as this is tapped. */
+function voiceLoop(){
+  const st=document.getElementById('vstate'), or=document.getElementById('orb'),
+        sub=document.getElementById('vsub'), end=document.getElementById('vEnd'),
+        done=document.getElementById('vDone');
+  voiceTimers.forEach(clearTimeout); voiceTimers = [];
+  const at=(ms,fn)=>voiceTimers.push(setTimeout(fn,ms));
+
+  function speaking(){ st.textContent='Speaking…'; sub.textContent='बोल रही हूँ'; or.classList.remove('orb-idle'); done.classList.add('hidden'); }
+  function listening(){ st.textContent='Listening…'; sub.textContent='आप बोलिए, मैं सुन रही हूँ'; or.classList.remove('orb-idle'); done.classList.remove('hidden'); }
+  function thinking(){ st.textContent='Thinking…'; sub.textContent='आपकी बात समझ रही हूँ'; or.classList.add('orb-idle'); done.classList.add('hidden'); }
+
+  speaking(); end.classList.add('hidden');
+  at(2200, listening);
+  at(9200, thinking);          // the ~7s listening window closing on its own
+  at(10800,()=>{ speaking(); end.classList.remove('hidden'); });
+  at(13300, listening);
+}
+
+/* Same effect as tapping "Done speaking" on the device: close the listening
+   turn now instead of waiting out the timer. */
+function doneSpeaking(){
+  const st=document.getElementById('vstate');
+  if(st.textContent!=='Listening…') return;
+  voiceTimers.forEach(clearTimeout); voiceTimers = [];
+  const or=document.getElementById('orb'), sub=document.getElementById('vsub'),
+        end=document.getElementById('vEnd'), done=document.getElementById('vDone');
+  st.textContent='Thinking…'; sub.textContent='आपकी बात समझ रही हूँ';
+  or.classList.add('orb-idle'); done.classList.add('hidden');
+  voiceTimers.push(setTimeout(()=>{
+    st.textContent='Speaking…'; sub.textContent='बोल रही हूँ';
+    or.classList.remove('orb-idle'); end.classList.remove('hidden');
+    voiceTimers.push(setTimeout(()=>{
+      st.textContent='Listening…'; sub.textContent='आप बोलिए, मैं सुन रही हूँ';
+      done.classList.remove('hidden');
+    }, 2500));
+  }, 1600));
+}
+
+show('welcome');
+</script>
+</body>
+</html>

@@ -1,0 +1,46 @@
+# --- secrets: never commit ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# --- python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# --- database ---
+*.db
+*.db-wal
+*.db-shm
+*.sqlite3
+
+# --- node ---
+node_modules/
+dist/
+build/
+.expo/
+*.tsbuildinfo
+npm-debug.log*
+
+# --- generated native projects (expo prebuild) ---
+# Regenerate with: npx expo prebuild --platform android
+# app.json and the config plugins are the source of truth, not these directories.
+patient-app/android/
+patient-app/ios/
+
+# --- os / editor ---
+.DS_Store
+.idea/
+.vscode/
+
+# --- audio must never be persisted to the repo ---
+*.wav
+*.mp3
+tmp_audio/

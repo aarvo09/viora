@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>VIORA — Counsellor Dashboard (design preview)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+/* Identical tokens to src/styles/tokens.css — this preview is the same design,
+   not an approximation of it. */
+:root{
+  --bg:#f6f4ef; --bg-glow-a:#e9f1ee; --bg-glow-b:#f2e9e2;
+  --surface:#ffffff; --surface-sunken:#fbfaf7;
+  --ink:#1b2432; --ink-soft:#46505f; --muted:#6b7684;
+  --line:#e6e1d8; --line-strong:#d6d0c6;
+  --primary:#2e7d74; --primary-hover:#266a62; --primary-tint:#e6f0ee;
+  --risk-low:#4c9a78; --risk-moderate:#d9a23b; --risk-high:#d9703b;
+  --risk-critical:#c0453c; --risk-urgent:#8e2a26;
+  --risk-low-tint:#eaf3ee; --risk-moderate-tint:#fbf3e3; --risk-high-tint:#fbeee7;
+  --risk-critical-tint:#f9eae9; --risk-urgent-tint:#f5e4e3;
+  --axis-threat:#c0453c; --axis-distress:#2e7d74; --axis-baseline:#a8a29a;
+  --font:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --font-display:'Outfit',var(--font);
+  --radius:10px; --radius-sm:8px;
+  --shadow-sm:0 1px 2px rgba(27,36,50,.06);
+  --shadow:0 8px 24px rgba(27,36,50,.08),0 1px 3px rgba(27,36,50,.05);
+  --motion:240ms ease-out; --motion-slow:700ms cubic-bezier(.22,1,.36,1);
+  --drift:18000ms linear infinite;
+}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+h1,h2,h3,p{margin:0}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+.tnum{font-variant-numeric:tabular-nums}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow-sm)}
+.card-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:12px 24px;border-bottom:1px solid var(--line)}
+.card-title{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.card-meta{font-size:12px;color:var(--muted)}
+.card-pad{padding:16px 24px}
+.stack{display:flex;flex-direction:column}
+.row{display:flex;align-items:center}
+.spread{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.wrap{flex-wrap:wrap}
+.g2{gap:8px}.g3{gap:12px}.g4{gap:16px}.g6{gap:24px}
+.muted{color:var(--muted)}.soft{color:var(--ink-soft)}
+.sm{font-size:12px}.xs{font-size:11px}.strong{font-weight:600}
+.label{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:8px 16px;min-height:34px;border:1px solid var(--line-strong);border-radius:var(--radius-sm);background:var(--surface);font-weight:500;cursor:pointer;transition:background var(--motion),border-color var(--motion)}
+.btn:hover{background:var(--surface-sunken);border-color:var(--muted)}
+.btn-primary{background:var(--primary);border-color:var(--primary);color:#fff}
+.btn-primary:hover{background:var(--primary-hover);border-color:var(--primary-hover)}
+.btn-sm{padding:4px 12px;min-height:28px;font-size:12px}
+.btn-ghost{border-color:transparent;background:transparent;color:var(--primary)}
+.btn-ghost:hover{background:var(--primary-tint)}
+.table{width:100%;border-collapse:collapse}
+.table th{padding:8px 12px;text-align:left;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--line);white-space:nowrap}
+.table td{padding:12px;border-bottom:1px solid var(--line)}
+.table tbody tr:hover{background:var(--surface-sunken)}
+.scroll-x{overflow-x:auto;max-width:100%}
+/* Outlined chip; the caller sets the colour, because what it means is the
+   caller's knowledge. Matches src/styles/tokens.css. */
+.tag{display:inline-flex;align-items:center;padding:1px 8px;border:1px solid var(--line-strong);border-radius:6px;font-size:11px;font-weight:600;letter-spacing:.02em;white-space:nowrap}
+.reasons{display:flex;flex-direction:column;gap:8px;margin:0;padding:0;list-style:none}
+.reasons li{display:flex;align-items:baseline;gap:12px;font-size:13px}
+.reasons li .tag{flex:none}
+.ambience{position:relative;overflow:hidden}
+.ambience::before{content:'';position:absolute;inset:-40%;background:radial-gradient(40% 40% at 25% 25%,var(--bg-glow-a),transparent 70%),radial-gradient(40% 40% at 75% 70%,var(--bg-glow-b),transparent 70%);filter:blur(40px);opacity:.55;pointer-events:none;animation:drift var(--drift) linear infinite alternate}
+@keyframes drift{from{transform:translate3d(-4%,-3%,0)}to{transform:translate3d(4%,3%,0)}}
+.rise{animation:rise .7s cubic-bezier(.22,1,.36,1) both}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.rise-1{animation-delay:.04s}.rise-2{animation-delay:.08s}.rise-3{animation-delay:.12s}.rise-4{animation-delay:.16s}
+header.top{background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:10}
+.shell{max-width:1280px;margin:0 auto;padding:24px}
+.navlink{padding:8px 12px;border-radius:var(--radius-sm);font-weight:500;text-decoration:none;color:var(--ink-soft);cursor:pointer;transition:background var(--motion),color var(--motion)}
+.navlink.active{color:var(--primary);background:var(--primary-tint)}
+.queue-row{display:flex;align-items:stretch;gap:16px;padding:12px 16px;border-bottom:1px solid var(--line);text-decoration:none;color:inherit;cursor:pointer;transition:background var(--motion)}
+.queue-row:hover{background:var(--surface-sunken)}
+.grid-2{display:grid;grid-template-columns:minmax(280px,1fr) minmax(320px,1.2fr);gap:24px}
+.grid-tj{display:grid;grid-template-columns:minmax(300px,.8fr) minmax(340px,1.2fr);gap:24px}
+@media(max-width:900px){.grid-2,.grid-tj{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="shell spread" style="padding:12px 24px">
+    <div class="row g6">
+      <span style="font-size:16px;font-weight:700;letter-spacing:.14em;color:var(--primary)">VIORA</span>
+      <nav class="row g2">
+        <span class="navlink active" data-nav="today">Today</span>
+        <span class="navlink" data-nav="case">Case view</span>
+      </nav>
+    </div>
+    <div class="row g4">
+      <span class="xs strong" style="padding:2px 8px;border-radius:6px;background:var(--risk-moderate-tint);color:var(--risk-moderate);border:1px solid #d9a23b33">DESIGN PREVIEW</span>
+      <span class="sm soft">A. Sharma <span class="muted">· DSWO</span></span>
+    </div>
+  </div>
+</header>
+
+<main class="shell ambience" id="app"></main>
+
+<script>
+/* ---------------------------------------------------------------- data ---
+   Mirrors what the real pipeline produces for the seeded cases. */
+const d = n => new Date(Date.now() - n*864e5);
+const ahead = n => new Date(Date.now() + n*864e5);
+
+const CASES = [
+  {id:3, name:'Kavita Kumari', uid:'VRA-2915', ref:'CASE-2024-0288', stage:'FIR registered',
+   risk:'CRITICAL', dir:'ESCALATING', threat:78.4, distress:64.3, trend:'WORSENING',
+   last:d(2), next:ahead(1), alerts:1, why:'new incident · unsafe at home'},
+  {id:2, name:'Sunita Bai', uid:'VRA-7364', ref:'CASE-2024-0203', stage:'Under investigation',
+   risk:'HIGH', dir:'ESCALATING', threat:61.3, distress:57.8, trend:'WORSENING',
+   last:d(6), next:ahead(0), alerts:1, why:'pressure to withdraw complaint'},
+  {id:1, name:'Meera Devi', uid:'VRA-4821', ref:'CASE-2024-0117', stage:'Chargesheet filed',
+   risk:'LOW', dir:'DE_ESCALATING', threat:0, distress:18.6, trend:'IMPROVING',
+   last:d(3), next:ahead(11), alerts:0, why:''},
+];
+
+const TRAIL = {
+  3:[{v:1,distress:38.5,threat:34.7,base:38.5},{v:2,distress:51.4,threat:59.7,base:38.5},{v:3,distress:64.3,threat:78.4,base:51.2}],
+  2:[{v:1,distress:31.2,threat:27.4,base:31.2},{v:2,distress:44.6,threat:41.9,base:31.2},{v:3,distress:57.8,threat:61.3,base:37.9}],
+  1:[{v:1,distress:26.9,threat:0,base:26.9},{v:2,distress:21.4,threat:0,base:26.9},{v:3,distress:18.6,threat:0,base:24.2}],
+};
+
+const FACTORS = [
+  {code:'NEW_INCIDENT', label:'New incident reported', sev:'SERIOUS', ev:'कल रात कुछ लोग घर के बाहर आए थे।'},
+  {code:'DIRECT_THREAT', label:'Direct threat received', sev:'SERIOUS', ev:'धमकी वाले मैसेज आए हैं।'},
+  {code:'UNSAFE_AT_HOME', label:'Reports not feeling safe at home', sev:'SERIOUS', ev:'अब घर पर भी डर लगता है।'},
+  {code:'WITHDRAWAL_PRESSURE', label:'Pressure to withdraw complaint', sev:'SERIOUS', ev:'केस वापस ले लो, वरना ठीक नहीं होगा।'},
+  {code:'DISTRESS_ABOVE_BASELINE', label:'Distress above personal baseline', sev:'CONCERN', ev:'+13.1 vs baseline 51.2'},
+  {code:'THREAT_ELEVATED', label:'Elevated external threat', sev:'CONCERN', ev:'threat 78.4'},
+  {code:'SLEEP_CONCERN', label:'Sleep disturbance', sev:'CONCERN', ev:'टूट-टूट कर आती है।'},
+  {code:'TREND_ESCALATING', label:'Pattern suggests escalation', sev:'CONCERN', ev:''},
+];
+
+const TRANSCRIPT = [
+  ['VIORA','नमस्ते कविता। मुझे बताइए, इस हफ्ते कैसा रहा?'],
+  ['USER','कल रात कुछ लोग घर के बाहर आए थे। चिल्ला रहे थे।'],
+  ['VIORA','यह बहुत डरावना रहा होगा। उस वक्त आपके साथ कोई था?'],
+  ['USER','माँ थीं। पर हम कुछ कर नहीं सके।'],
+  ['VIORA','आप अभी घर पर खुद को सुरक्षित महसूस कर रही हैं?'],
+  ['USER','नहीं। अब घर पर भी डर लगता है।'],
+];
+
+/* ------------------------------------------------------------- helpers --- */
+const RISK_FG = {LOW:'--risk-low',MODERATE:'--risk-moderate',HIGH:'--risk-high',CRITICAL:'--risk-critical',URGENT:'--risk-urgent'};
+const DIR = {
+  ESCALATING:['↗','Escalating','--risk-high'],
+  DE_ESCALATING:['↘','De-escalating','--risk-low'],
+  STABLE:['→','Stable','--muted'],
+  INSUFFICIENT_DATA:['·','Not enough history','--muted'],
+};
+const TREND = {WORSENING:['▲','Worsening','--risk-high'],IMPROVING:['▼','Improving','--risk-low'],STABLE:['—','Stable','--muted']};
+const SEV = {SERIOUS:['--risk-critical','Serious'],CONCERN:['--risk-moderate','Concern'],INFO:['--muted','Context']};
+
+const rel = dt => {const n=Math.round((Date.now()-dt.getTime())/864e5);return n===0?'today':n===1?'yesterday':`${n} days ago`};
+const due = dt => {const n=Math.round((dt.getTime()-Date.now())/864e5);return n<0?[`overdue ${-n}d`,1]:n===0?['today',1]:n===1?['tomorrow',0]:[`in ${n}d`,0]};
+const fmt = dt => dt.toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'});
+const fmtT = dt => dt.toLocaleString(undefined,{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+
+const badge = (r,size) => {const p=size==='lg'?'6px 14px':size==='sm'?'1px 8px':'3px 10px';const f=size==='lg'?'14px':size==='sm'?'11px':'12px';
+  return `<span style="display:inline-flex;align-items:center;padding:${p};font-size:${f};font-weight:600;letter-spacing:.06em;color:var(${RISK_FG[r]});background:var(${RISK_FG[r]}-tint);border:1px solid var(${RISK_FG[r]});border-color:color-mix(in srgb,var(${RISK_FG[r]}) 25%,transparent);border-radius:6px;white-space:nowrap">${r}</span>`};
+const dirTag = (k,size) => {const[g,l,c]=DIR[k];const f=size==='lg'?'14px':size==='sm'?'11px':'12px';
+  return `<span class="row g2" style="color:var(${c});font-size:${f};font-weight:600"><span style="font-size:1.1em">${g}</span>${l}</span>`};
+const trendTag = k => {const[g,l,c]=TREND[k]||TREND.STABLE;return `<span class="row g2 sm" style="color:var(${c});font-weight:600"><span>${g}</span>${l}</span>`};
+
+function bar(label,value,color,baseline){
+  return `<div class="stack g2">
+    <div class="spread"><span class="label">${label}</span>
+      <span class="tnum" style="font-size:20px;font-weight:600">${value.toFixed(1)}</span></div>
+    <div style="position:relative;height:10px;border-radius:5px;background:var(--surface-sunken);border:1px solid var(--line);overflow:hidden">
+      <div style="width:${Math.max(0,Math.min(100,value))}%;height:100%;background:var(${color});border-radius:5px"></div>
+      ${baseline?`<div title="Personal baseline ${baseline.toFixed(1)}" style="position:absolute;left:${baseline}%;top:-2px;bottom:-2px;width:2px;background:var(--ink);opacity:.45"></div>`:''}
+    </div></div>`;
+}
+
+/* Trajectory quadrant — distress X, threat Y, history as a trail. */
+function quadrant(points){
+  const W=320,H=260,P={t:18,r:18,b:34,l:40};
+  const pw=W-P.l-P.r, ph=H-P.t-P.b;
+  const sx=v=>P.l+(Math.max(0,Math.min(100,v))/100)*pw;
+  const sy=v=>P.t+ph-(Math.max(0,Math.min(100,v))/100)*ph;
+  const q=[[0,50,'ENDANGERED','--risk-high-tint'],[50,50,'CRISIS','--risk-critical-tint'],
+           [0,0,'SETTLED','--risk-low-tint'],[50,0,'STRUGGLING','--risk-moderate-tint']];
+  const cur=points[points.length-1];
+  const path=points.map(p=>`${sx(p.distress)},${sy(p.threat)}`).join(' ');
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:${W}px;display:block" role="img"
+      aria-label="Distress ${cur.distress.toFixed(0)}, threat ${cur.threat.toFixed(0)} out of 100">
+    ${q.map(([x,y,l,t])=>`<rect x="${P.l+(x/100)*pw}" y="${P.t+ph-((y+50)/100)*ph}" width="${pw/2}" height="${ph/2}" fill="var(${t})"/>`).join('')}
+    ${q.map(([x,y,l])=>`<text x="${P.l+(x/100)*pw+6}" y="${P.t+ph-((y+50)/100)*ph+13}" font-size="8" font-weight="600" letter-spacing=".6" fill="var(--muted)">${l}</text>`).join('')}
+    <line x1="${P.l+pw/2}" y1="${P.t}" x2="${P.l+pw/2}" y2="${P.t+ph}" stroke="var(--line-strong)"/>
+    <line x1="${P.l}" y1="${P.t+ph/2}" x2="${P.l+pw}" y2="${P.t+ph/2}" stroke="var(--line-strong)"/>
+    <rect x="${P.l}" y="${P.t}" width="${pw}" height="${ph}" fill="none" stroke="var(--line-strong)"/>
+    ${[0,50,100].map(v=>`<text x="${P.l-8}" y="${sy(v)+3}" font-size="9" text-anchor="end" fill="var(--muted)">${v}</text>`).join('')}
+    ${[0,50,100].map(v=>`<text x="${sx(v)}" y="${P.t+ph+14}" font-size="9" text-anchor="middle" fill="var(--muted)">${v}</text>`).join('')}
+    <text x="${P.l+pw/2}" y="${H-4}" font-size="9" font-weight="600" text-anchor="middle" fill="var(--axis-distress)" letter-spacing=".5">DISTRESS →</text>
+    <text x="${-(P.t+ph/2)}" y="11" font-size="9" font-weight="600" text-anchor="middle" fill="var(--axis-threat)" transform="rotate(-90)" letter-spacing=".5">THREAT →</text>
+    <polyline points="${path}" fill="none" stroke="var(--ink)" stroke-opacity=".28" stroke-width="1.5" stroke-dasharray="3 3"/>
+    ${points.slice(0,-1).map(p=>`<circle cx="${sx(p.distress)}" cy="${sy(p.threat)}" r="3.5" fill="var(--surface)" stroke="var(--ink)" stroke-opacity=".4" stroke-width="1.5"/>`).join('')}
+    <circle cx="${sx(cur.distress)}" cy="${sy(cur.threat)}" r="9" fill="var(--risk-critical)" opacity=".14"/>
+    <circle cx="${sx(cur.distress)}" cy="${sy(cur.threat)}" r="5" fill="var(--risk-critical)" stroke="var(--surface)" stroke-width="1.5"/>
+  </svg>
+  <p class="muted xs" style="max-width:320px;margin-top:12px">Position is the latest check-in; the dashed trail is the previous ${points.length-1}. High threat with low distress still warrants attention.</p>`;
+}
+
+/* Longitudinal line chart, hand-drawn (no chart library needed). */
+function lineChart(points){
+  const W=560,H=220,P={t:14,r:14,b:26,l:32};
+  const pw=W-P.l-P.r, ph=H-P.t-P.b;
+  const sx=i=>P.l+(points.length===1?pw/2:(i/(points.length-1))*pw);
+  const sy=v=>P.t+ph-(v/100)*ph;
+  const series=[['threat','--axis-threat',2,''],['distress','--axis-distress',2,''],['base','--axis-baseline',1,'4 4']];
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block">
+    ${[0,25,50,75,100].map(v=>`<line x1="${P.l}" y1="${sy(v)}" x2="${P.l+pw}" y2="${sy(v)}" stroke="var(--line)"/>
+      <text x="${P.l-6}" y="${sy(v)+3}" font-size="9" text-anchor="end" fill="var(--muted)">${v}</text>`).join('')}
+    ${points.map((p,i)=>`<text x="${sx(i)}" y="${H-8}" font-size="10" text-anchor="middle" fill="var(--muted)">v${p.v}</text>`).join('')}
+    ${series.map(([k,c,w,dash])=>`<polyline points="${points.map((p,i)=>`${sx(i)},${sy(p[k])}`).join(' ')}"
+       fill="none" stroke="var(${c})" stroke-width="${w}" ${dash?`stroke-dasharray="${dash}"`:''}/>`).join('')}
+    ${points.map((p,i)=>`<circle cx="${sx(i)}" cy="${sy(p.threat)}" r="3" fill="var(--axis-threat)"/>
+      <circle cx="${sx(i)}" cy="${sy(p.distress)}" r="3" fill="var(--axis-distress)"/>`).join('')}
+  </svg>
+  <div class="row g4 xs muted" style="margin-top:8px">
+    <span class="row g2"><span style="width:10px;height:2px;background:var(--axis-threat)"></span>Threat</span>
+    <span class="row g2"><span style="width:10px;height:2px;background:var(--axis-distress)"></span>Distress</span>
+    <span class="row g2"><span style="width:10px;height:2px;background:var(--axis-baseline)"></span>Baseline</span>
+  </div>`;
+}
+
+/* ------------------------------------------------------------- screens --- */
+function today(){
+  const need = CASES.filter(c=>c.alerts>0||['HIGH','CRITICAL','URGENT'].includes(c.risk));
+  const mon  = CASES.filter(c=>!need.includes(c));
+  const row = c => {const[dt,urgent]=due(c.next);return `
+    <div class="queue-row" data-case="${c.id}">
+      <span style="display:inline-block;width:3px;align-self:stretch;min-height:34px;border-radius:2px;background:var(${RISK_FG[c.risk]})"></span>
+      <div class="stack g2" style="flex:1;min-width:0">
+        <div class="row g3 wrap">
+          <span class="strong" style="font-size:16px">${c.name}</span>
+          ${badge(c.risk,'sm')} ${dirTag(c.dir,'sm')}
+        </div>
+        <div class="row g3 wrap muted xs">
+          <span>${c.uid}</span><span>·</span><span>${c.ref}</span><span>·</span>
+          <span>${c.stage}</span><span>·</span><span>last check-in ${rel(c.last)}</span>
+        </div>
+      </div>
+      <div class="row g4" style="flex-shrink:0">
+        <div class="stack" style="align-items:flex-end">
+          <span class="label xs" style="color:var(--axis-threat)">Threat</span>
+          <span class="tnum strong" style="font-size:16px">${c.threat.toFixed(0)}</span></div>
+        <div class="stack" style="align-items:flex-end">
+          <span class="label xs" style="color:var(--axis-distress)">Distress</span>
+          <span class="tnum strong" style="font-size:16px">${c.distress.toFixed(0)}</span></div>
+        <div class="stack" style="align-items:flex-end;min-width:92px">
+          <span class="label xs">Next</span>
+          <span class="sm" style="color:var(${urgent?'--risk-high':'--muted'});font-weight:${urgent?600:400}">${dt}</span></div>
+        ${c.alerts?`<span class="xs strong" style="align-self:center;padding:3px 8px;border-radius:6px;background:var(--risk-critical-tint);color:var(--risk-critical);border:1px solid #c0453c33;white-space:nowrap">Review needed</span>`:''}
+      </div>
+    </div>`};
+
+  // Cadence factors as backend/app/services/cadence.py emits them. The interval
+  // starts at the band default and these rules move it; showing them is what
+  // makes the date reviewable instead of asserted.
+  const CADENCE = {
+    3: {hours:24, base:72, factors:[
+      ['Escalating trajectory — check in sooner', 0.5],
+      ['Above personal baseline', 0.7],
+      ['New incident or direct threat disclosed', 0.6],
+      ['Does not feel safe at home', 0.7],
+    ]},
+    2: {hours:72, base:72, factors:[
+      ['Escalating trajectory — check in sooner', 0.5],
+      ['Distress rose since last check-in', 0.8],
+      ['Support factors present', 1.15],
+    ]},
+    1: {hours:336, base:336, factors:[]},
+  };
+
+  const fmtIv = (h) => h < 24 ? `${Math.round(h)}h`
+    : (Math.round(h - Math.floor(h/24)*24) === 0
+        ? `${Math.floor(h/24)}d`
+        : `${Math.floor(h/24)}d ${Math.round(h - Math.floor(h/24)*24)}h`);
+
+  const cadencePanel = (c) => {
+    const cad = CADENCE[c.id];
+    if (!cad) return '';
+    const head = `<span class="label">Why this date — predicted ${fmtIv(cad.hours)}${
+      cad.base !== cad.hours ? ` (band default ${fmtIv(cad.base)})` : ''}</span>`;
+    if (!cad.factors.length) {
+      return `<div class="stack g2">${head}
+        <span class="soft small">Nothing in this check-in moved the interval from the band default.</span></div>`;
+    }
+    const rows = cad.factors.map(([label, m]) => {
+      const tight = m < 1;
+      const colour = tight ? 'var(--risk-high)' : 'var(--risk-low)';
+      return `<li><span class="tag" style="color:${colour};border-color:${colour}">${
+        tight ? 'sooner' : 'later'} ×${m}</span><span class="soft">${label}</span></li>`;
+    }).join('');
+    return `<div class="stack g2">${head}<ul class="reasons">${rows}</ul></div>`;
+  };
+
+  // Check-ins the scheduler has moved to DUE. Not an alert: nobody disclosed
+  // anything new, this is a promised contact nobody has made yet.
+  const DUE = [
+    {name:'कविता देवी', ref:'VIORA-2026-0041', risk:'CRITICAL', channel:'Voice',
+     overdue:1, reason:'Critical risk — next-day follow-up'},
+    {name:'सुनीता कुमारी', ref:'VIORA-2026-0038', risk:'HIGH', channel:'Text',
+     overdue:0, reason:'High risk — early follow-up (escalating trajectory)'},
+  ];
+  const dueRow = (f) => `
+    <div class="queue-row" style="align-items:center">
+      <span style="display:inline-block;width:3px;align-self:stretch;min-height:34px;border-radius:2px;background:var(${RISK_FG[f.risk]})"></span>
+      <div class="stack g2" style="flex:1;min-width:0">
+        <div class="row g3 wrap">
+          <span class="strong" style="font-size:16px">${f.name}</span>
+          ${badge(f.risk,'sm')}
+        </div>
+        <div class="row g3 wrap muted xs"><span>${f.ref}</span><span>·</span><span>${f.reason}</span></div>
+      </div>
+      <div class="row g4" style="flex-shrink:0">
+        <div class="stack" style="align-items:flex-end">
+          <span class="label xs">Channel</span><span class="sm muted">${f.channel}</span></div>
+        <div class="stack" style="align-items:flex-end;min-width:92px">
+          <span class="label xs">Due</span>
+          <span class="sm" style="color:var(${f.overdue?'--risk-high':'--ink'});font-weight:${f.overdue?600:500}">${f.overdue?`overdue ${f.overdue}d`:'today'}</span></div>
+      </div>
+    </div>`;
+
+  return `<div class="stack g6">
+    <div class="spread wrap">
+      <h1 style="font-size:24px;font-weight:600">Today</h1>
+      <div class="row g6 wrap">
+        <div class="row g2" style="align-items:baseline"><span class="tnum" style="font-size:20px;font-weight:700;color:var(--risk-critical)">2</span><span class="muted sm">need review</span></div>
+        <div class="row g2" style="align-items:baseline"><span class="tnum" style="font-size:20px;font-weight:700;color:var(--risk-high)">2</span><span class="muted sm">due today</span></div>
+        <div class="row g2" style="align-items:baseline"><span class="tnum" style="font-size:20px;font-weight:700">3</span><span class="muted sm">active cases</span></div>
+      </div>
+    </div>
+    <section class="card">
+      <header class="card-head"><span class="card-title">Check-ins due</span><span class="card-meta">${DUE.filter(f=>f.overdue>0).length} overdue of ${DUE.length}</span></header>
+      ${DUE.map(dueRow).join('')}
+    </section>
+    <section class="card">
+      <header class="card-head"><span class="card-title">Needs attention</span><span class="card-meta">${need.length} of ${CASES.length}</span></header>
+      ${need.map(row).join('')}
+    </section>
+    <section class="card">
+      <header class="card-head"><span class="card-title">Monitoring</span><span class="card-meta">${mon.length}</span></header>
+      ${mon.map(row).join('')}
+    </section>
+  </div>`;
+}
+
+function caseView(id){
+  const c = CASES.find(x=>x.id===id) || CASES[0];
+  const pts = TRAIL[c.id];
+  const latest = pts[pts.length-1];
+  const facts = c.id===3 ? FACTORS : c.id===2
+    ? [{code:'WITHDRAWAL_PRESSURE',label:'Pressure to withdraw complaint',sev:'SERIOUS',ev:'केस वापस ले लो, वरना ठीक नहीं होगा।'},
+       {code:'THREAT_ELEVATED',label:'Elevated external threat',sev:'CONCERN',ev:'threat 61.3'},
+       {code:'SOCIAL_ISOLATION',label:'Social isolation',sev:'CONCERN',ev:'बाहर निकलने का मन भी नहीं करता।'}]
+    : [{code:'PROTECTIVE_SUPPORT',label:'Support factors present',sev:'INFO',ev:'दीदी साथ रहती हैं।'},
+       {code:'LEGAL_PROGRESS',label:'Legal process progressing',sev:'INFO',ev:'केस आगे बढ़ रहा है।'}];
+  const prev = pts[pts.length-2];
+  const change = prev ? latest.distress - prev.distress : 0;
+
+  const group = s => {const g=facts.filter(f=>f.sev===s); if(!g.length) return '';
+    return `<div class="stack g2">
+      <span class="label" style="color:var(${SEV[s][0]})">${SEV[s][1]}</span>
+      ${g.map(f=>`<div class="row g3" style="align-items:flex-start">
+        <span style="display:inline-block;width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:6px;background:var(${SEV[s][0]})"></span>
+        <div class="stack" style="min-width:0">
+          <span style="font-weight:500">${f.label}</span>
+          ${f.ev?`<span class="muted sm" style="border-left:2px solid var(--line-strong);padding-left:8px;margin-top:2px">${f.ev}</span>`:''}
+        </div></div>`).join('')}
+    </div>`};
+
+  return `<div class="stack g6">
+    <span class="sm" style="color:var(--primary);cursor:pointer" data-nav="today">← All cases</span>
+
+    <div class="spread wrap" style="align-items:flex-start">
+      <div class="stack g2">
+        <h1 style="font-size:24px;font-weight:600">${c.name}</h1>
+        <div class="row g3 wrap muted sm">
+          <span>${c.uid}</span><span>·</span><span>${c.ref}</span><span>·</span>
+          <span>${c.stage}</span><span>·</span><span>Hindi</span><span>·</span><span>safe contact 09:00–13:00</span>
+        </div>
+      </div>
+      <div class="row g6" style="align-items:flex-start">
+        <div class="stack g2" style="align-items:flex-end"><span class="label">Current</span>${badge(c.risk,'lg')}</div>
+        <div class="stack g2" style="align-items:flex-end"><span class="label">Trajectory</span>${dirTag(c.dir,'lg')}</div>
+      </div>
+    </div>
+
+    <section class="card" style="border-color:${c.alerts?'var(--risk-critical)':'var(--line)'};border-width:${c.alerts?1.5:1}px">
+      <header class="card-head" style="background:${c.alerts?'var(--risk-critical-tint)':'transparent'}">
+        <span class="card-title" style="${c.alerts?'color:var(--risk-critical)':''}">Next action</span>
+        ${c.alerts?`<span class="card-meta" style="color:var(--risk-critical)">raised ${rel(c.last)}</span>`:''}
+      </header>
+      <div class="card-pad stack g4">
+        <p style="font-size:16px">${c.alerts
+          ? `<strong>Human review required.</strong> <span class="soft">VIORA has flagged this case. The decision is yours.</span>`
+          : `<span class="soft">No review outstanding. Monitoring continues on schedule.</span>`}</p>
+        <textarea class="btn" rows="2" placeholder="Notes (optional)" style="width:100%;min-height:auto;padding:8px 12px;text-align:left;justify-content:flex-start;resize:vertical;font-family:inherit"></textarea>
+        <div class="row g2 wrap">
+          <button class="btn">Continue monitoring</button>
+          <button class="btn btn-primary">Intervention required</button>
+          <button class="btn">Escalate</button>
+          <button class="btn">Close case</button>
+        </div>
+      </div>
+    </section>
+
+    <div class="grid-2">
+      <section class="card">
+        <header class="card-head"><span class="card-title">State</span><span class="card-meta">v3 · ${rel(c.last)}</span></header>
+        <div class="card-pad stack g6">
+          ${bar('Threat',c.threat,'--axis-threat',0)}
+          ${bar('Distress',c.distress,'--axis-distress',latest.base)}
+          <div class="stack g2 sm" style="border-top:1px solid var(--line);padding-top:12px">
+            <div class="spread"><span class="muted">Personal baseline</span>
+              <span class="row g2"><span class="tnum">${latest.base.toFixed(1)}</span>
+              <span style="font-size:11px;font-weight:600;letter-spacing:.06em;padding:1px 6px;border-radius:6px;color:var(--muted);background:var(--surface-sunken);border:1px solid var(--line)">MEDIUM</span></span></div>
+            <div class="spread"><span class="muted">Previous check-in</span><span class="tnum">${prev?prev.distress.toFixed(1):'—'}</span></div>
+            <div class="spread"><span class="muted">Change</span>
+              <span class="tnum" style="color:var(${change>0?'--risk-high':'--risk-low'});font-weight:600">${change>0?'▲ +':'▼ '}${change.toFixed(1)}</span></div>
+            <div class="spread"><span class="muted">Trend</span>${trendTag(c.trend)}</div>
+            <div class="spread"><span class="muted">Escalation risk</span><span class="tnum">${c.id===3?'71.4':c.id===2?'58.2':'9.1'}</span></div>
+          </div>
+          <p class="muted xs" style="border-top:1px solid var(--line);padding-top:12px">
+            Trajectory is a prioritisation aid over the next two check-ins. It is not a clinical or crisis prediction.</p>
+        </div>
+      </section>
+
+      <section class="card">
+        <header class="card-head"><span class="card-title">Why</span><span class="card-meta">${facts.length} factors</span></header>
+        <div class="card-pad stack g4">
+          ${group('SERIOUS')}${group('CONCERN')}${group('INFO')}
+        </div>
+      </section>
+    </div>
+
+    <div class="grid-tj">
+      <section class="card">
+        <header class="card-head"><span class="card-title">Position</span></header>
+        <div class="card-pad">${quadrant(pts)}</div>
+      </section>
+      <section class="card">
+        <header class="card-head"><span class="card-title">Over time</span><span class="card-meta">${pts.length} check-ins</span></header>
+        <div class="card-pad">${lineChart(pts)}</div>
+      </section>
+    </div>
+
+    <section class="card">
+      <header class="card-head"><span class="card-title">Next check-in</span></header>
+      <div class="card-pad stack g4">
+        <div class="row g6 wrap">
+          <div class="stack"><span class="label">When</span><span class="strong">${fmtT(c.next)}</span></div>
+          <div class="stack"><span class="label">Channel</span><span>VOICE</span></div>
+          <div class="stack"><span class="label">Status</span><span>SCHEDULED</span></div>
+          <div class="stack"><span class="label">Set by</span>
+            <span class="tag" style="color:var(--muted);border-color:var(--line-strong)">Predicted</span></div>
+          <div class="stack" style="flex:1;min-width:200px"><span class="label">Reason</span>
+            <span class="soft">${c.id===3?'Critical risk — next-day follow-up (escalating trajectory)':c.id===2?'High risk — early follow-up (escalating trajectory)':'Routine monitoring'}</span></div>
+        </div>
+        ${cadencePanel(c)}
+      </div>
+    </section>
+
+    <section class="card">
+      <header class="card-head"><span class="card-title">Report history</span><span class="card-meta">${pts.length} versions</span></header>
+      <div class="scroll-x">
+        <table class="table"><thead><tr>
+          <th>Version</th><th>Date</th><th style="text-align:right">Threat</th>
+          <th style="text-align:right">Distress</th><th style="text-align:right">Baseline</th><th>Risk</th></tr></thead>
+        <tbody>${[...pts].reverse().map((p,i)=>`<tr>
+          <td class="tnum strong">v${p.v}</td>
+          <td class="muted">${fmt(d(i===0?2:i===1?12:24))}</td>
+          <td class="tnum" style="text-align:right">${p.threat.toFixed(1)}</td>
+          <td class="tnum" style="text-align:right">${p.distress.toFixed(1)}</td>
+          <td class="tnum muted" style="text-align:right">${p.base.toFixed(1)}</td>
+          <td>${badge(p.threat>=70||p.distress>=80?'CRITICAL':p.threat>=50||p.distress>=60?'HIGH':p.threat>=30||p.distress>=40?'MODERATE':'LOW','sm')}</td>
+        </tr>`).join('')}</tbody></table>
+      </div>
+    </section>
+
+    <section class="card">
+      <header class="card-head"><span class="card-title">Conversation</span><span class="card-meta">VOICE · 6 turns</span></header>
+      <div class="card-pad stack g3">
+        ${TRANSCRIPT.map(([role,text])=>`<div class="stack" style="gap:2px">
+          <span class="label xs" style="color:var(${role==='USER'?'--ink':'--primary'})">${role==='USER'?c.name:'VIORA'}</span>
+          <span style="max-width:72ch">${text}</span></div>`).join('')}
+      </div>
+    </section>
+  </div>`;
+}
+
+/* ---------------------------------------------------------------- init --- */
+let current = {screen:'today', caseId:3};
+function render(){
+  document.getElementById('app').innerHTML =
+    current.screen==='today' ? today() : caseView(current.caseId);
+  document.querySelectorAll('[data-nav]').forEach(el=>el.classList.toggle('active',
+    el.dataset.nav===current.screen && el.classList.contains('navlink')));
+  window.scrollTo(0,0);
+}
+document.addEventListener('click', e=>{
+  const nav = e.target.closest('[data-nav]');
+  if(nav){ current.screen = nav.dataset.nav; render(); return; }
+  const row = e.target.closest('[data-case]');
+  if(row){ current = {screen:'case', caseId:+row.dataset.case}; render(); }
+});
+render();
+</script>
+</body>
+</html>

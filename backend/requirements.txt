@@ -1,0 +1,30 @@
+fastapi>=0.115.0
+uvicorn[standard]>=0.32.0
+pydantic>=2.9.0
+pydantic-settings>=2.6.0
+sqlalchemy>=2.0.36
+python-multipart>=0.0.12
+python-dotenv>=1.0.1
+
+# Auth. bcrypt + PyJWT directly — passlib and python-jose are unmaintained and
+# break on Python 3.13+ (passlib imports the removed `crypt` module).
+bcrypt>=4.2.0
+PyJWT>=2.9.0
+
+# Sarvam SDK. Pinned loosely; verify the API surface against docs.sarvam.ai.
+sarvamai>=0.1.0
+
+# LangChain / LangGraph — contract §6 names LangGraph as the workflow engine.
+# The graph orchestrates ONLY; it never computes a score. See services/graph.py.
+# langchain-core carries the message/prompt/runnable types used by the LLM lane;
+# we deliberately do NOT pull a provider integration, because Sarvam is reached
+# through our own adapter in services/sarvam.py.
+langgraph>=0.2.0
+langchain-core>=0.3.0
+
+# Schema migrations. init_db() still bootstraps a fresh database; Alembic owns
+# every change after that. SQLite needs render_as_batch — see alembic/env.py.
+alembic>=1.13.0
+
+pytest>=8.3.0
+httpx>=0.27.0

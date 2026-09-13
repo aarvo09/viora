@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json.schemastore.org/eas.json",
+  "cli": {
+    "version": ">= 5.9.0",
+    "appVersionSource": "local"
+  },
+  "build": {
+    "preview": {
+      "//": "Installable APK for demo phones. buildType 'apk' matters: the default for a production Android build is an AAB, which cannot be sideloaded.",
+      "android": {
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleRelease"
+      },
+      "distribution": "internal",
+      "channel": "preview",
+      "env": {
+        "//": "Baked into the bundle at build time. Must be the LAN address of the laptop running the backend — not localhost, which on a phone means the phone itself. Override per build with: EXPO_PUBLIC_API_BASE_URL=http://192.168.x.x:8000 eas build ...",
+        "EXPO_PUBLIC_API_BASE_URL": "http://192.168.1.20:8000"
+      }
+    },
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "production": {
+      "//": "AAB for Play Store submission. Not sideloadable — use 'preview' for demo phones.",
+      "android": {
+        "buildType": "app-bundle"
+      },
+      "autoIncrement": true
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}
