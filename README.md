@@ -548,7 +548,7 @@ The entire multi-tier system (Backend, Web Dashboard, Mobile Metro Bundler, Andr
 ```mermaid
 sequenceDiagram
     autonumber
-    actor Dev as Evaluator / Jury
+    actor Dev as dev who is testing viora prototype
     participant Orchestrator as ./start.sh
     participant Backend as FastAPI (:8000)
     participant Counsellor as Vite Web (:5173)
