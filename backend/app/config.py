@@ -39,7 +39,7 @@ class Settings(BaseSettings):
     # Female voice, calm and warm. Pace 1.0 is the vendor's natural rate:
     # deliberately slowing speech to sound "therapeutic" reads as condescending.
     SARVAM_TTS_SPEAKER: str = "priya"
-    SARVAM_TTS_PACE: float = 1.0
+    SARVAM_TTS_PACE: float = 1.28
     SARVAM_TIMEOUT_SECONDS: float = 30.0
 
     # --- auth ---
@@ -49,7 +49,7 @@ class Settings(BaseSettings):
     # nobody can act on trains people to ignore warnings that matter.
     JWT_SECRET: str = "dev-only-insecure-change-me-0000"
     JWT_ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 12 * 60
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 525600  # 1 year (no session expiry during development / demo)
 
     # --- CORS ---
     # Explicit origins only. Never "*" — the contract forbids it, and "*" with

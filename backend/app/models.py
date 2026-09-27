@@ -80,6 +80,14 @@ class User(Base):
     # Contract §8. These are ordinary-looking accounts for controlled testing.
     is_controlled_test: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
+    @property
+    def is_synthetic(self) -> bool:
+        return self.is_controlled_test
+
+    @is_synthetic.setter
+    def is_synthetic(self, value: bool) -> None:
+        self.is_controlled_test = value
+
     created_at: Mapped[datetime] = mapped_column(UTCDateTime(), default=utcnow)
 
     cases: Mapped[list["Case"]] = relationship(back_populates="user", cascade="all, delete-orphan")
@@ -125,6 +133,10 @@ class Case(Base):
     )
     case_ref: Mapped[str] = mapped_column(String(32), unique=True, index=True, nullable=False)
     status: Mapped[str] = mapped_column(String(16), default="ACTIVE", nullable=False)
+    # Administrative geographic location for district-level aggregation
+    district: Mapped[str] = mapped_column(String(64), default="Central District", server_default="Central District", nullable=False)
+    area_id: Mapped[str] = mapped_column(String(32), default="AREA_A", server_default="AREA_A", index=True, nullable=False)
+    area_name: Mapped[str] = mapped_column(String(120), default="Area A", server_default="Area A", nullable=False)
     # Single field rather than a legal-timeline module for this build.
     legal_stage: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
     assigned_staff_id: Mapped[Optional[int]] = mapped_column(

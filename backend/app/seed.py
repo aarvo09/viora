@@ -270,29 +270,33 @@ RAHUL_HISTORY = [
 
 PEOPLE = [
     {
-        "uid": "VRA-4821", "name": "Meera Devi", "language": "hi", "channel": "TEXT",
-        "case_ref": "CASE-2024-0117", "stage": "Chargesheet filed",
-        "safe": ("10:00", "17:00"), "history": MEERA_HISTORY,
+        "uid": "VRA-2915", "name": "Kavita Kumari", "language": "hi", "channel": "VOICE",
+        "case_ref": "CASE-2024-0288", "stage": "FIR registered",
+        "district": "Central District", "area_id": "AREA_A", "area_name": "Area A",
+        "safe": ("09:00", "13:00"), "history": KAVITA_HISTORY,
     },
     {
         "uid": "VRA-7364", "name": "Sunita Bai", "language": "hi", "channel": "VOICE",
         "case_ref": "CASE-2024-0203", "stage": "Under investigation",
+        "district": "Central District", "area_id": "AREA_A", "area_name": "Area A",
         "safe": ("11:00", "16:00"), "history": SUNITA_HISTORY,
     },
     {
-        "uid": "VRA-2915", "name": "Kavita Kumari", "language": "hi", "channel": "VOICE",
-        "case_ref": "CASE-2024-0288", "stage": "FIR registered",
-        "safe": ("09:00", "13:00"), "history": KAVITA_HISTORY,
+        "uid": "VRA-4821", "name": "Meera Devi", "language": "hi", "channel": "TEXT",
+        "case_ref": "CASE-2024-0117", "stage": "Chargesheet filed",
+        "district": "Central District", "area_id": "AREA_B", "area_name": "Area B",
+        "safe": ("10:00", "17:00"), "history": MEERA_HISTORY,
     },
     {
-        "uid": "VRA-3108", "name": "Rahul Verma", "language": "hi", "channel": "VOICE",
+        "uid": "VRA-3108", "name": "Rahul Manjhi", "language": "hi", "channel": "VOICE",
         "case_ref": "CASE-2024-0315", "stage": "Witness protection support",
+        "district": "Central District", "area_id": "AREA_C", "area_name": "Area C",
         "safe": ("09:00", "18:00"), "history": RAHUL_HISTORY,
     },
 ]
 
 
-def seed() -> None:
+def seed(reset: bool = False) -> None:
     init_db()
     db = SessionLocal()
     try:
@@ -307,9 +311,22 @@ def seed() -> None:
             db.add(staff)
             db.flush()
 
+        if reset:
+            logger.info("Resetting cases and users for clean seed distribution...")
+            for u in db.scalars(select(User)).all():
+                db.delete(u)
+            db.commit()
+
         for person in PEOPLE:
             existing = db.scalars(select(User).where(User.uid == person["uid"])).first()
             if existing is not None:
+                # Ensure existing case has up-to-date geographic area assignment
+                existing_case = db.scalars(select(Case).where(Case.user_id == existing.id)).first()
+                if existing_case:
+                    existing_case.district = person["district"]
+                    existing_case.area_id = person["area_id"]
+                    existing_case.area_name = person["area_name"]
+                    db.commit()
                 continue
             user = User(
                 uid=person["uid"],
@@ -330,6 +347,9 @@ def seed() -> None:
                 status="ACTIVE",
                 legal_stage=person["stage"],
                 assigned_staff_id=staff.id,
+                district=person["district"],
+                area_id=person["area_id"],
+                area_name=person["area_name"],
             )
             db.add(case)
             db.flush()
@@ -379,4 +399,7 @@ def seed() -> None:
 
 
 if __name__ == "__main__":
-    seed()
+    import sys
+    should_reset = "--reset" in sys.argv or "-r" in sys.argv
+    seed(reset=should_reset)
+

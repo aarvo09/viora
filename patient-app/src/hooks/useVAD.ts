@@ -42,6 +42,9 @@ export const POLL_MS = 80
 /** A turn is cut off here even if the person is still speaking, so a stuck
  *  recorder or a hot mic can never hold the call open indefinitely. */
 export const MAX_TURN_MS = 25000
+/** Silence threshold after speech has started: if the user stops speaking,
+ *  after 2500ms (~2.5s) of silence, the turn auto-completes and evaluates. */
+export const POST_SPEECH_SILENCE_MS = 2500
 
 /* -- Turn-ending when the platform reports no metering -------------------- *
 
@@ -271,6 +274,7 @@ export async function listenForTurn(
     onMode?.(next)
   }
 
+  let lastSpeechAt: number | null = null
   let outcome: 'speech' | 'silence' | 'cutoff' = 'silence'
   try {
     for (;;) {
@@ -280,9 +284,10 @@ export async function listenForTurn(
         break
       }
 
+      const currentTime = now()
       const status = recorder.getStatus()
       const db = status.metering
-      const elapsed = now() - startedAt
+      const elapsed = currentTime - startedAt
 
       if (typeof db === 'number') {
         // A real sample: metering works here, so the VAD owns this window even
@@ -290,11 +295,26 @@ export async function listenForTurn(
         enter('VAD')
         const verdict = vad.update(db)
         onLevel?.(db, vad.noiseFloor)
-        if (verdict === 'speech') onSpeechStart?.()
+
+        const isVoiceLevel = db > vad.noiseFloor + ATTACK_DB
+        if (verdict === 'speech' || isVoiceLevel) {
+          lastSpeechAt = currentTime
+          if (verdict === 'speech') onSpeechStart?.()
+        }
+
         if (done?.tapped || verdict === 'end') {
           outcome = 'speech'
           break
         }
+
+        // Post-speech silence threshold (~2.5 seconds):
+        // Once the user has spoken, if no further speech input has occurred for
+        // POST_SPEECH_SILENCE_MS, end turn and evaluate immediately.
+        if (lastSpeechAt !== null && (vad.heardSpeech || isVoiceLevel) && (currentTime - lastSpeechAt >= POST_SPEECH_SILENCE_MS)) {
+          outcome = 'speech'
+          break
+        }
+
         if (!vad.heardSpeech && elapsed >= 5000) {
           outcome = 'silence'
           break

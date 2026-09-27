@@ -254,3 +254,39 @@ export interface ReviewResponse {
   decided_at: string
   intervention_id: number | null
 }
+
+export interface AreaHotspot {
+  area_id: string
+  area_name: string
+  administrative_name: string
+  district: string
+  active_cases: number
+  average_distress: number
+  average_threat: number
+  high_risk_cases: number
+  critical_cases: number
+  hotspot_score: number
+  intensity: number
+  hotspot_level: 'LOW' | 'MODERATE' | 'HIGH'
+  recent_change_pct: number
+  trend: string
+  center_lat: number
+  center_lng: number
+  geojson: any
+}
+
+export interface DistressTrendPoint {
+  label: string
+  mean_distress: number
+  baseline: number
+}
+
+export interface GeographicHotspotsResponse {
+  district: string
+  time_range: string
+  generated_at: string
+  total_active_cases: number
+  areas: AreaHotspot[]
+  distress_trends: DistressTrendPoint[]
+}
+

@@ -36,7 +36,7 @@ from app.models import (
     StaffUser,
     User,
 )
-from app.services import sarvam, scheduler
+from app.services import hotspot, sarvam, scheduler
 from app.schemas import (
     ActivityItem,
     AlertListItem,
@@ -46,6 +46,7 @@ from app.schemas import (
     CaseListItem,
     DashboardSummary,
     FollowUpOut,
+    GeographicHotspotsResponse,
     LoginRequest,
     LoginResponse,
     PredictionOut,
@@ -675,3 +676,23 @@ def dashboard_summary(
         priority_cases=priority,
         recent_activity=activity,
     )
+
+
+# --------------------------------------------------- geographic hotspots ----
+
+@router.get("/district/geographic-hotspots", response_model=GeographicHotspotsResponse)
+@router.get("/geographic-hotspots", response_model=GeographicHotspotsResponse)
+def get_geographic_hotspots(
+    db: Session = Depends(get_db),
+    district: str = Query(default="Central District"),
+    time_range: str = Query(default="30d"),
+) -> GeographicHotspotsResponse:
+    """Aggregated district distress hotspot metrics and longitudinal trends.
+
+    Provides administrative area-level geographic distress concentration (Area A, Area B, Area C)
+    and longitudinal cohort distress progression. Strictly aggregate: contains no patient PII,
+    no individual coordinates, and no patient identifiers.
+    """
+    data = hotspot.get_district_hotspots(db, district=district, time_range=time_range)
+    return GeographicHotspotsResponse.model_validate(data)
+

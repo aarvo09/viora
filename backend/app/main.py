@@ -6,14 +6,15 @@ import asyncio
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.orm import Session
 
 from app.api import counsellor, patient
 from app.config import settings
-from app.core.database import SessionLocal, init_db
-from app.schemas import HealthResponse
-from app.services import sarvam, scheduler, scoring
+from app.core.database import SessionLocal, get_db, init_db
+from app.schemas import GeographicHotspotsResponse, HealthResponse
+from app.services import hotspot, sarvam, scheduler, scoring
 
 logging.basicConfig(
     level=getattr(logging, settings.LOG_LEVEL.upper(), logging.INFO),
@@ -123,3 +124,19 @@ def health() -> HealthResponse:
         voice_available=sarvam.is_configured(),
         scoring_version=scoring.VERSION,
     )
+
+
+@app.get(
+    "/api/district/geographic-hotspots",
+    response_model=GeographicHotspotsResponse,
+    tags=["counsellor"],
+)
+def district_geographic_hotspots_alias(
+    db: Session = Depends(get_db),
+    district: str = Query(default="Central District"),
+    time_range: str = Query(default="30d"),
+) -> GeographicHotspotsResponse:
+    """Convenience alias for /api/v1/district/geographic-hotspots."""
+    data = hotspot.get_district_hotspots(db, district=district, time_range=time_range)
+    return GeographicHotspotsResponse.model_validate(data)
+

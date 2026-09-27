@@ -1,5 +1,5 @@
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native'
-import { colors, radius, space, type as typeScale } from '../theme'
+import { colors, space, type as typeScale } from '../theme'
 
 export function Welcome({ loading, onDone }: { loading: boolean; onDone: () => void }) {
   return (
@@ -13,7 +13,6 @@ export function Welcome({ loading, onDone }: { loading: boolean; onDone: () => v
           onPress={onDone}
           hitSlop={20}
           style={({ pressed }) => [
-            styles.btn,
             pressed && { opacity: 0.8, transform: [{ scale: 0.98 }] },
           ]}
         >

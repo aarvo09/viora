@@ -342,7 +342,12 @@ export function useVoiceTurn({
             // registered — which would hang the loop on a missed didJustFinish.
             const { sound: created } = await Audio.Sound.createAsync(
               { uri: file as string },
-              { shouldPlay: true, volume: mutedRef.current ? 0 : 1 },
+              {
+                shouldPlay: true,
+                volume: mutedRef.current ? 0 : 1,
+                rate: 1.15,
+                shouldCorrectPitch: true,
+              },
               (status) => {
                 if (!status.isLoaded) return
                 if (status.didJustFinish) finish()

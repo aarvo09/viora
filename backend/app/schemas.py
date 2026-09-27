@@ -422,3 +422,41 @@ class HealthResponse(BaseModel):
     env: str
     voice_available: bool
     scoring_version: str
+
+
+# --------------------------------------------------- geographic hotspots ----
+
+class AreaHotspotOut(BaseModel):
+    area_id: str
+    area_name: str
+    administrative_name: str
+    district: str
+    active_cases: int
+    average_distress: float
+    average_threat: float
+    high_risk_cases: int
+    critical_cases: int
+    hotspot_score: float
+    intensity: float
+    hotspot_level: Literal["LOW", "MODERATE", "HIGH"]
+    recent_change_pct: float
+    trend: str
+    center_lat: float
+    center_lng: float
+    geojson: dict[str, Any]
+
+
+class DistressTrendPoint(BaseModel):
+    label: str
+    mean_distress: float
+    baseline: float = 40.0
+
+
+class GeographicHotspotsResponse(BaseModel):
+    district: str
+    time_range: str
+    generated_at: str
+    total_active_cases: int
+    areas: list[AreaHotspotOut] = Field(default_factory=list)
+    distress_trends: list[DistressTrendPoint] = Field(default_factory=list)
+

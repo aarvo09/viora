@@ -143,7 +143,10 @@ export function VoiceCallScreen({
       </View>
 
       {/* Center Voice Orb Stage */}
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <TouchableWithoutFeedback onPress={() => {
+        Keyboard.dismiss()
+        if (voice.phase === 'LISTENING') voice.finishSpeaking()
+      }}>
         <View style={styles.stage}>
           <VoiceOrb
             state={ORB[voice.phase] ?? 'THINKING'}
@@ -151,6 +154,20 @@ export function VoiceCallScreen({
             sublabel={label.hi}
             level={voice.level}
           />
+          {voice.phase === 'LISTENING' && (
+            <Pressable
+              onPress={voice.finishSpeaking}
+              style={({ pressed }) => [
+                styles.doneSpeakingBtn,
+                pressed && { opacity: 0.8, transform: [{ scale: 0.96 }] },
+              ]}
+              accessibilityLabel="Done speaking"
+            >
+              <Text style={styles.doneSpeakingText}>
+                {language?.startsWith('hi') ? '✓ बात पूरी हुई (Done)' : '✓ Done speaking'}
+              </Text>
+            </Pressable>
+          )}
         </View>
       </TouchableWithoutFeedback>
 
@@ -536,5 +553,23 @@ const styles = StyleSheet.create({
   },
   sendDisabled: {
     opacity: 0.4,
+  },
+  doneSpeakingBtn: {
+    marginTop: space.md,
+    paddingVertical: 10,
+    paddingHorizontal: 22,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surface,
+    borderWidth: 1.5,
+    borderColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...shadow.subtle,
+  },
+  doneSpeakingText: {
+    fontSize: typeScale.xs,
+    fontWeight: '800',
+    color: colors.primary,
+    letterSpacing: 0.5,
   },
 })

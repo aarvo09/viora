@@ -44,3 +44,14 @@ patient-app/ios/
 *.wav
 *.mp3
 tmp_audio/
+
+# --- runtime logs ---
+.logs/
+
+# --- scratch and backups ---
+*.bak
+testingimages/
+notimp/
+*.txt
+scripts/verify_browser.cjs
+counsellor-web/verify_browser.cjs

@@ -232,6 +232,42 @@ def _call_tts(text: str, language: str) -> bytes:
     return base64.b64decode(first) if isinstance(first, str) else bytes(first)
 
 
+def _clean_speech_audio(raw_audio: bytes) -> bytes:
+    """Optimize speech audio loudness and dynamic range to ensure loud, crystal-clear playback."""
+    if not raw_audio or len(raw_audio) < 44 or raw_audio[:4] != b"RIFF":
+        return raw_audio
+    try:
+        import io, struct, wave
+        in_buf = io.BytesIO(raw_audio)
+        with wave.open(in_buf, "rb") as w:
+            params = w.getparams()
+            if params.sampwidth != 2:
+                return raw_audio
+            nframes = params.nframes
+            raw_frames = w.readframes(nframes)
+
+        total_samples = nframes * params.nchannels
+        samples = struct.unpack(f"<{total_samples}h", raw_frames)
+        max_val = max(abs(s) for s in samples) if samples else 0
+        if max_val == 0:
+            return raw_audio
+
+        # Target peak: 31000 (-0.4 dBFS) ensures maximum audible volume on mobile/emulator speakers
+        target_peak = 31000.0
+        # If quiet, apply gain boost (up to 4.0x) so whisper-quiet synthesis is loud and intelligible
+        scale = min(target_peak / max_val, 4.0)
+
+        cleaned = [max(-32767, min(32767, int(s * scale))) for s in samples]
+
+        out_buf = io.BytesIO()
+        with wave.open(out_buf, "wb") as out_w:
+            out_w.setparams(params)
+            out_w.writeframes(struct.pack(f"<{len(cleaned)}h", *cleaned))
+        return out_buf.getvalue()
+    except Exception:
+        return raw_audio
+
+
 def synthesize_sentences(text: str, language_code: str) -> list[AudioChunk]:
     """Text → per-sentence audio chunks, in order.
 
@@ -251,8 +287,9 @@ def synthesize_sentences(text: str, language_code: str) -> list[AudioChunk]:
             continue
         ok, result = _with_retry(lambda s=sentence: _call_tts(s, lang), what="tts")
         if ok:
+            cleaned = _clean_speech_audio(result)
             chunks.append(
-                AudioChunk(index=i, text=sentence, audio_b64=base64.b64encode(result).decode())
+                AudioChunk(index=i, text=sentence, audio_b64=base64.b64encode(cleaned).decode())
             )
         else:
             chunks.append(AudioChunk(index=i, text=sentence, audio_b64=_generate_chime_b64(), error=str(result)))

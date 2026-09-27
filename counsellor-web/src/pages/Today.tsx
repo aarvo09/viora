@@ -2,7 +2,16 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../api/client'
-import type { CaseListItem, DashboardSummary, DueFollowUp, RiskLevel, TelemetryPoint } from '../api/types'
+import type {
+  CaseListItem,
+  DashboardSummary,
+  DueFollowUp,
+  GeographicHotspotsResponse,
+  RiskLevel,
+  TelemetryPoint,
+} from '../api/types'
+import { DistressTrendChart } from '../components/DistressTrendChart'
+import { GeographicHotspotMap } from '../components/GeographicHotspotMap'
 import {
   DirectionTag,
   Empty,
@@ -45,6 +54,26 @@ export function Today() {
   const [error, setError] = useState<string | null>(null)
   const [activeFilter, setActiveFilter] = useState<'ALL' | 'HIGH' | 'ESCALATING' | 'FOLLOWUP'>('ALL')
 
+  const [hotspotData, setHotspotData] = useState<GeographicHotspotsResponse | null>(null)
+  const [hotspotTimeRange, setHotspotTimeRange] = useState<string>('30d')
+  const [isRefreshingHotspots, setIsRefreshingHotspots] = useState<boolean>(false)
+  const [lastHotspotSync, setLastHotspotSync] = useState<string>('')
+
+  const loadHotspots = (range = hotspotTimeRange) => {
+    setIsRefreshingHotspots(true)
+    api
+      .geographicHotspots(range)
+      .then((data) => {
+        setHotspotData(data)
+        const now = new Date()
+        setLastHotspotSync(
+          now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+        )
+      })
+      .catch((err) => console.error('Failed to load geographic hotspots', err))
+      .finally(() => setIsRefreshingHotspots(false))
+  }
+
   useEffect(() => {
     let alive = true
     Promise.all([api.dashboard(), api.cases()])
@@ -60,10 +89,29 @@ export function Today() {
       .then((rows) => alive && setDueFollowUps(rows))
       .catch(() => {})
 
+    loadHotspots(hotspotTimeRange)
+
+    // Periodic live background poll every 8 seconds
+    const interval = setInterval(() => {
+      if (!alive) return
+      api
+        .geographicHotspots(hotspotTimeRange)
+        .then((data) => {
+          if (!alive) return
+          setHotspotData(data)
+          const now = new Date()
+          setLastHotspotSync(
+            now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+          )
+        })
+        .catch(() => {})
+    }, 8000)
+
     return () => {
       alive = false
+      clearInterval(interval)
     }
-  }, [])
+  }, [hotspotTimeRange])
 
   if (error) return <ErrorNote message={error} />
   if (!summary) return <div className="p-space-2xl flex justify-center"><Spinner /></div>
@@ -234,6 +282,59 @@ export function Today() {
           </div>
         </div>
 
+      </section>
+
+      {/* SECTION: District Surveillance — Distress Trends & Geographic Hotspots */}
+      <section className="mb-space-lg">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-space-xs mb-space-sm">
+          <div>
+            <div className="flex items-center gap-space-xs">
+              <h2 className="font-headline-lg text-headline-lg text-on-surface">
+                District Surveillance &amp; Distress Telemetry
+              </h2>
+              <span className="px-2 py-0.5 rounded-full bg-surface-container font-data-mono text-body-sm text-secondary font-medium">
+                {hotspotData?.district || 'Central District'} · 3 Blocks
+              </span>
+            </div>
+            <p className="font-body-sm text-body-sm text-secondary mt-0.5">
+              Simultaneous temporal trajectory and spatial distress concentration across monitored areas
+            </p>
+          </div>
+          <div className="flex items-center gap-space-xs text-xs text-secondary">
+            <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+            <span>Live Data-Driven Hotspot Analysis</span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-stretch">
+          {/* A. DISTRESS TREND OVER TIME */}
+          <div className="lg:col-span-5 flex flex-col">
+            <DistressTrendChart
+              data={hotspotData?.distress_trends || []}
+              timeRange={hotspotTimeRange}
+              onTimeRangeChange={(r) => {
+                setHotspotTimeRange(r)
+                loadHotspots(r)
+              }}
+            />
+          </div>
+
+          {/* B. GEOGRAPHIC DISTRESS HOTSPOTS */}
+          <div className="lg:col-span-7 flex flex-col">
+            <GeographicHotspotMap
+              district={hotspotData?.district || 'Central District'}
+              areas={hotspotData?.areas || []}
+              timeRange={hotspotTimeRange}
+              onTimeRangeChange={(r) => {
+                setHotspotTimeRange(r)
+                loadHotspots(r)
+              }}
+              onRefresh={() => loadHotspots(hotspotTimeRange)}
+              isRefreshing={isRefreshingHotspots}
+              lastUpdated={lastHotspotSync}
+            />
+          </div>
+        </div>
       </section>
 
       {/* SECTION 2: Two-column Main Working Grid */}

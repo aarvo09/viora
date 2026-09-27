@@ -13,6 +13,7 @@ import type {
   DashboardSummary,
   DueFollowUp,
   FollowUp,
+  GeographicHotspotsResponse,
   InteractionSummary,
   LoginResponse,
   Report,
@@ -36,8 +37,32 @@ export interface StaffSession {
 }
 
 const DEFAULT_TOKEN =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwiZW1haWwiOiJjYXNld29ya2VyQHZpb3JhLmxvY2FsIiwicm9sZSI6IkRTV08iLCJleHAiOjE3ODkzMzIzODF9.Mi88vdZFw0JCeLroRGS58XpqjKEt0feF2jN4WVUjqeo'
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwiZW1haWwiOiJjYXNld29ya2VyQHZpb3JhLmxvY2FsIiwicm9sZSI6IkRTV08iLCJleHAiOjE4MjE3MTYyNjl9.oTypG1uzz54msm8-GZAaV3KA7Et_ZM4a-PUkDTMaTM8'
 const DEFAULT_STAFF: StaffSession = { staff_id: 1, name: 'Dr. A. Sharma', role: 'DSWO' }
+
+let authRefreshPromise: Promise<string | null> | null = null
+
+async function autoLogin(): Promise<string | null> {
+  if (authRefreshPromise) return authRefreshPromise
+  authRefreshPromise = (async () => {
+    try {
+      const res = await fetch(`${BASE}/api/v1/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: 'caseworker@viora.local', password: 'viora1234' }),
+      })
+      if (!res.ok) return null
+      const data: LoginResponse = await res.json()
+      auth.save(data)
+      return data.access_token
+    } catch {
+      return null
+    } finally {
+      authRefreshPromise = null
+    }
+  })()
+  return authRefreshPromise
+}
 
 export const auth = {
   token(): string | null {
@@ -106,6 +131,20 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
     // Most common cause on a LAN demo: backend not running, or bound to
     // localhost instead of 0.0.0.0.
     throw new ApiError(`Cannot reach the backend at ${BASE}`, 0)
+  }
+
+  // Automatic seamless re-authentication if session expired
+  if (res.status === 401 && !path.startsWith('/auth/login')) {
+    auth.clear()
+    const freshToken = await autoLogin()
+    if (freshToken) {
+      headers.Authorization = `Bearer ${freshToken}`
+      try {
+        res = await fetch(`${BASE}/api/v1${path}`, { ...init, headers })
+      } catch {
+        throw new ApiError(`Cannot reach the backend at ${BASE}`, 0)
+      }
+    }
   }
 
   if (res.status === 401) {
@@ -186,6 +225,11 @@ const httpApi = {
         method: 'POST',
         body: JSON.stringify({ text, language }),
       },
+    ),
+
+  geographicHotspots: (timeRange = '30d', district = 'Central District') =>
+    request<GeographicHotspotsResponse>(
+      `/district/geographic-hotspots?time_range=${encodeURIComponent(timeRange)}&district=${encodeURIComponent(district)}`,
     ),
 }
 

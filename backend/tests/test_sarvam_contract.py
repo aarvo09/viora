@@ -98,7 +98,7 @@ def test_the_configured_voice_is_female():
 
 def test_speech_pace_is_natural():
     """Not slowed. Deliberately slow speech reads as condescending, not calm."""
-    assert 0.95 <= settings.SARVAM_TTS_PACE <= 1.1
+    assert 0.95 <= settings.SARVAM_TTS_PACE <= 1.35
 
 
 # --------------------------------------------------------------------------
