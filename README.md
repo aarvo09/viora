@@ -226,8 +226,8 @@ The conversational agent is strictly restricted to:
 **Zero scoring, zero clinical tiering, zero trajectory modeling, and zero scheduling logic are ever delegated to an LLM.** Every metric shown on the clinician dashboard is computed via deterministic, auditable mathematical services.
 
 See complete specifications:
-- **[Clinical Safety Contract & Signal Taxonomy](docs/CONTRACT.md)**
 - **[Comprehensive Mathematical Formulas Reference](formulas.md)**
+- **[Engineering Journey & Technical Architecture](general.md)**
 
 ---
 
@@ -515,7 +515,6 @@ viora/
 │   └── package.json
 │
 ├── docs/
-│   ├── CONTRACT.md                 # Clinical Safety Contract & Signal Taxonomy v1.0.0
 │   └── images/                     # Production prototype screenshots
 │       ├── 01_district_geographic_hotspot_map.png
 │       ├── 02_counsellor_dashboard_overview.png

@@ -164,7 +164,7 @@ export function VoiceCallScreen({
               accessibilityLabel="Done speaking"
             >
               <Text style={styles.doneSpeakingText}>
-                {language?.startsWith('hi') ? '✓ बात पूरी हुई (Done)' : '✓ Done speaking'}
+                {language?.startsWith('hi') ? 'बात पूरी हुई (Done)' : 'Done speaking'}
               </Text>
             </Pressable>
           )}

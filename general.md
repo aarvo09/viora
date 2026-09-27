@@ -59,7 +59,7 @@ flowchart TD
 
     subgraph PersistenceLayer ["5. Persistence & Human Oversight"]
         Cadence --> DB[(SQLite WAL Database<br>Append-Only Schema)]
-        DB --> Scheduler["Background State Machine<br>SCHEDULED ➔ DUE ➔ MISSED"]
+        DB --> Scheduler["Background State Machine<br>SCHEDULED -> DUE -> MISSED"]
         Scheduler --> Dashboard["Counsellor Web Dashboard<br>(Vite + React)"]
         LangGraph -.-> |URGENT Alert| Dashboard
     end
@@ -72,14 +72,14 @@ flowchart TD
 ```mermaid
 timeline
     title 4-Week Intensive Development Journey
-    Week 1 : Clinical Safety Contract : 15-Entity Append-Only Schema : Pure Scoring (Distress/Threat/Composite) : Risk Banding Tiers
+    Week 1 : Clinical Safety Architecture : 15-Entity Append-Only Schema : Pure Scoring (Distress/Threat/Composite) : Risk Banding Tiers
     Week 2 : 8-Node LangGraph StateGraph : Personalized Case-Isolated Baseline : OLS Trajectory Slope : Adaptive Cadence Engine (Clamped)
     Week 3 : Sarvam AI Indic Speech (Saaras/Bulbul) : Streaming Chunked Audio : Client-Side VAD (2.5s Threshold) : Mid-Call Crisis Alert Net
     Week 4 : Master Orchestrator (start.sh) : Hardware GPU Acceleration : Anti-Cracking Audio Limiter : Safe-Contact Window Enforcement : 350 Passing Tests
 ```
 
 ### Week 1: Clinical Foundations, Data Modeling & Deterministic Scoring
-- **Formulated Clinical Safety Contract (`CONTRACT.md`):** Established that the LLM must **never** compute a score, diagnose a condition, or choose a follow-up date.
+- **Formulated Clinical Safety Architecture:** Established that the LLM must **never** compute a score, diagnose a condition, or choose a follow-up date.
 - **Engineered Append-Only Database Schema (`models.py`):**
   - 15 relational tables via SQLAlchemy & Alembic (`0001_initial.py`).
   - Historical reports, workflow events, and risk predictions are never updated or mutated—preserving a complete forensic audit trail.

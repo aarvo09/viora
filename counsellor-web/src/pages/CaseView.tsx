@@ -1508,7 +1508,7 @@ export function CaseView() {
                             {f.status}
                           </span>
                           <span className="font-medium text-xs">
-                            {f.source === 'AI' ? '🤖 AI' : f.source === 'COUNSELLOR' ? '👤 Counsellor' : '⚙️ Cadence'}
+                            {f.source === 'AI' ? 'AI' : f.source === 'COUNSELLOR' ? 'Counsellor' : 'Cadence'}
                           </span>
                           <span className="text-secondary text-[11px]">{fmtDateTime(f.scheduled_for)}</span>
                         </div>

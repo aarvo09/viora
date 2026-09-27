@@ -6,7 +6,7 @@
  * Why sniff at all: the extension is not cosmetic on Android. ExoPlayer selects
  * an extractor partly by filename, and a wrong extension can fail to play audio
  * that is otherwise fine. The backend's container is explicitly unverified —
- * `services/sarvam.py` returns whatever Bulbul sends, with a ⚠️ VERIFY on the
+ * `services/sarvam.py` returns whatever Bulbul sends, with a WARNING: VERIFY on the
  * call — so guessing here would fail silently, as a clip that simply never
  * plays while the subtitle claims VIORA is speaking.
  */

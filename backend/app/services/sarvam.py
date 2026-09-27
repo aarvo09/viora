@@ -1,6 +1,6 @@
 """Sarvam adapter — the ONLY module that touches the vendor SDK.
 
-⚠️  VERIFY BEFORE THE DEMO. The exact SDK method names and speaker identifiers
+WARNING: VERIFY BEFORE THE DEMO. The exact SDK method names and speaker identifiers
 below were not verifiable offline. Everything vendor-specific is deliberately
 confined to `_call_stt`, `_call_tts` and `_call_chat` so correcting them is a
 three-function change, not a refactor.
@@ -211,7 +211,7 @@ def split_sentences(text: str, *, max_chars: int = 220) -> list[str]:
 
 
 def _call_tts(text: str, language: str) -> bytes:
-    """⚠️ VERIFY: SDK surface for Bulbul, and that the speaker id is female."""
+    """WARNING: VERIFY: SDK surface for Bulbul, and that the speaker id is female."""
     client = _client()
     response = client.text_to_speech.convert(
         text=text,
@@ -301,7 +301,7 @@ def synthesize_sentences(text: str, language_code: str) -> list[AudioChunk]:
 # ----------------------------------------------------------------- chat ----
 
 def _call_chat(messages: Sequence[dict[str, str]], temperature: float) -> str:
-    """⚠️ VERIFY: SDK surface for Sarvam-M chat completion."""
+    """WARNING: VERIFY: SDK surface for Sarvam-M chat completion."""
     client = _client()
     response = client.chat.completions(
         messages=list(messages),
